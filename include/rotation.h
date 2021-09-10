@@ -1,3 +1,10 @@
+/** @file rotation.h Documented includes for harmonic module */
+
+#ifndef __ROTATION__
+#define __ROTATION__
+
+#include "harmonic.h"
+
 struct rotation {
 	short has_rotated_cls;
 
@@ -49,7 +56,7 @@ extern "C" {
 	/* int rotation_rotated_cl_tt( */
 	/* 	); */
 
-	
+
 
 
 
