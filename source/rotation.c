@@ -26,19 +26,40 @@ int rotation_init(
 	double ** dm22;
 	double * buf_dxx; /* buffer */
 
-	double * C_alpha; /* C_alpha[index_mu] */
-	double * W_Ealpha; /* W_Ealpha[index_mu] */
+	double * C_a; /* C_a[index_mu] */
+	double * W_Ea; /* W_Ea[index_mu] */
 
 	double * ksip = NULL; /* ksip[index_mu] */
 	double * ksim = NULL; /* ksim[index_mu] */
 	double * ksiX = NULL; /* ksiX[index_mu] */
 
+	double fac;
+
 	int num_nu,index_mu,icount;
 	int l;
 	double ll;
+	double * cl_lensed; /* cl_lensed[index_ct] */
+	double * cl_ee = NULL; /* lensed  cl, to be filled to avoid repeated calls to harmonic_cl_at_l */
+	double * cl_bb = NULL; /* lensed  cl, to be filled to avoid repeated calls to harmonic_cl_at_l */
+	double * cl_aa; /* potential cl_aa, to be filled to avoid repeated calls to harmonic_cl_at_l */
 
+	double res, resX, rot;
+	double resp, resm, rotp, rotm;
 
+	double ** cl_md_ic; /* array with argument
+						   cl_md_ic[index_md][index_ic1_ic2*phr->ct_size+index_ct] */
 
+	double ** cl_md;    /* array with argument
+						   cl_md[index_md][index_ct] */
+
+	int index_md;
+
+	/* Timing */
+	//double debut, fin;
+	//double cpu_time;
+
+	/** - check that we really want to compute at least one spectrum */
+	
 
 }
 
