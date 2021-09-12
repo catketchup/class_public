@@ -1,4 +1,5 @@
 #include "rotation.h"
+#include "lensing.h"
 #include <time.h>
 
 int rotation_cl_at_l(
@@ -59,7 +60,54 @@ int rotation_init(
 	//double cpu_time;
 
 	/** - check that we really want to compute at least one spectrum */
-	
+
+	if (pro->has_rotated_cls == _FALSE_) {
+		if (pro->rotation_verbose > 0)
+			printf("No rotation requested. Rotation module skipped.\n");
+		return _SUCCESS_;
+	}
+	else {
+		if (pro->rotation_verbose > 0) {
+			printf("Computing rotated spectra ");
+			if
+		}
+	}
+
+
+	/***************/
+	/* configuring */
+	/***************/
+
+	/** - Compute \f$ d^l_{mm'} (\mu) \f$*/
+
+	icount = 0;
+	if(pro->has_ee==_TRUE_ || pro->has_bb==_TRUE_) {
+		class_alloc(d22,
+				num_nu*sizeof(double*),
+				ple->error_message);
+
+		class_alloc(dm22,
+				num_nu*sizeof(double*),
+				ple->error_message);
+		icount += 2*num_nu*(pro->l_unrotated_max+1);
+	}
+
+	/** - Allocate main contiguous buffer **/
+	class_alloc(buf_dxx,
+				icount * sizeof(double),
+				pro->error_message);
+
+	icount = 0;
+	if(pro->has_ee==_TRUE_ || pro->has_bb==_TRUE_) {
+		for (index_mu=0; index_mu<num_nu; index_mu++){
+			d22[index_mu] = &(buf_dxx[icount+index_mu            * (ple->l_unlensed_max+1)]);
+			dm22[index_mu] = &(buf_dxx[icount+(index_mu+num_mu)  * (ple->l_unlensed_max+1)]);
+		}
+		icount +=2*num_nu*(pro->l_unrotated_max+1);
+	}
+
+
+
 
 }
 

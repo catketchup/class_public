@@ -26,7 +26,7 @@ struct rotation {
 	short has_rotated_cls; /**< do we need to compute rotated \f$ C_l\f$'s at all ? */
 
 	//@}
-	
+
 	/** @name - information on number of type of C_l's (TT, TE...) */
 
 	//@{
