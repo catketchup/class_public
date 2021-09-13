@@ -27,7 +27,7 @@ int rotation_init(
 	double ** dm22;
 	double * buf_dxx; /* buffer */
 
-	double * C_a; /* C_a[index_mu] */
+	double * Ca; /* C_a[index_mu] */
 	double * W_Ea; /* W_Ea[index_mu] */
 
 	double * ksip = NULL; /* ksip[index_mu] */
@@ -84,11 +84,11 @@ int rotation_init(
 	if(pro->has_ee==_TRUE_ || pro->has_bb==_TRUE_) {
 		class_alloc(d22,
 				num_nu*sizeof(double*),
-				ple->error_message);
+				pro->error_message);
 
 		class_alloc(dm22,
 				num_nu*sizeof(double*),
-				ple->error_message);
+				pro->error_message);
 		icount += 2*num_nu*(pro->l_unrotated_max+1);
 	}
 
@@ -98,14 +98,89 @@ int rotation_init(
 				pro->error_message);
 
 	icount = 0;
-	if(pro->has_ee==_TRUE_ || pro->has_bb==_TRUE_) {
+	if (pro->has_ee==_TRUE_ || pro->has_bb==_TRUE_) {
 		for (index_mu=0; index_mu<num_nu; index_mu++){
-			d22[index_mu] = &(buf_dxx[icount+index_mu            * (ple->l_unlensed_max+1)]);
-			dm22[index_mu] = &(buf_dxx[icount+(index_mu+num_mu)  * (ple->l_unlensed_max+1)]);
+			d22[index_mu] = &(buf_dxx[icount+index_mu            * (pro->l_unrotated_max+1)]);
+			dm22[index_mu] = &(buf_dxx[icount+(index_mu+num_mu)  * (pro->l_unrotated_max+1)]);
 		}
 		icount +=2*num_nu*(pro->l_unrotated_max+1);
 	}
 
+	//debut = omp_get_wtime();
+	if (pro->has_ee==_TRUE_ || pro->has_bb==_TRUE_) {
+		class_call(lensing_d22(mu,num_mu,pro->l_unrotated_max,d22),
+               pro->error_message,
+               pro->error_message);
+		class_call(lensing_d2m2(mu,num_mu,pro->l_unrotated_max,dm22),
+             pro->error_message,
+             pro->error_message);
+	}
+
+	/** - compute \f$ Ca(\mu)\f$ */
+	class_alloc(Ca,
+				num_nu*sizeof(double),
+				pro->error_message);
+
+	/** - Locally store unrotated temperature \f$ cl\f$ and potential \f$ cl_{aa}\f$ spectra **/
+	if (pro->has_ee==_TRUE_ || pro->has_bb==_TRUE_) {
+		class_alloc(cl_ee,
+					  (pro->l_unrotated_max+1)*sizeof(double),
+					  pro->error_message);
+		class_alloc(cl_bb,
+					(pro->l_unrotated_max+1)*sizeof(double),
+					pro->error_message);
+	}
+	class_alloc(cl_aa,
+				(pro->l_unrotated_max+1)*sizeof(double),
+				pro->error_message);
+
+	class_alloc(cl_md_ic,
+				phr->md_size*sizeof(double *),
+				pro->error_message);
+
+	class_alloc(cl_md,
+				phr->md_size*sizeof(double *),
+				pro->error_message);
+
+	for (index_md = 0; index_md < phr->md_size; index_md++) {
+
+		if (phr->md_size > 1)
+
+			class_alloc(cl_md[index_md],
+						phr->ct_size*sizeof(double),
+						pro->error_message);
+
+		if (phr->ic_size[index_md] > 1)
+
+			class_alloc(cl_md_ic[index_md],
+						phr->ic_ic_size[index_md]*phr->ct_size*sizeof(double),
+						pro->error_message);
+	}
+
+  for (l=2; l<=pro->l_unrotated_max; l++) {
+	  class_call(harmonic_cl_at_l(phr,l,cl_unrotated,cl_md,cl_md_ic),
+				 phr->error_message,
+				 pro->error_message);
+	  cl_aa[l] = cl_unrotated[pro->index_lt_aa];
+
+	  if (pro->has_ee==_TRUE_ || pro->has_bb==_TRUE_) {
+		  cl_ee[l] = cl_unrotated[pro->index_lt_ee];
+		  cl_bb[l] = cl_unrotated[pro->index_lt_bb];
+	  }
+  }
+
+  for (index_md = 0; index_md < phr->md_size; index_md++) {
+
+	  if (phr->md_size > 1)
+		  free(cl_md[index_md]);
+
+	  if (phr->ic_size[index_md] > 1)
+		  free(cl_md_ic[index_md]);
+
+  }
+
+  free(cl_md_ic);
+  free(cl_md);  
 
 
 
