@@ -552,6 +552,12 @@ class_precision_parameter(delta_l_max,int,500)/**< difference between l_max in u
 class_precision_parameter(tol_gauss_legendre,double,ppr->smallest_allowed_variation) /**< tolerance with which quadrature points are found: must be very small for an accurate integration (if not entered manually, set automatically to match machine precision) */
 
 /*
+ * Rotation precision parameters
+ */
+
+class_precision_parameter(accurate_rotation,int,_FALSE_) /**< switch between Gauss-Legendre quadrature integration and simple quadrature on a subdomain of angles */	
+
+/*
  * Spectral distortions precision parameters
  */
 

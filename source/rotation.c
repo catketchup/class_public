@@ -13,6 +13,7 @@ int rotation_init(
 	struct precision * ppr,
 	struct perturbations * ppt,
 	struct harmoic * phr,
+	struct lensing * ple,
 	struct fourier * pfo,
 	struct rotation * pro
 	) {
@@ -39,10 +40,11 @@ int rotation_init(
 	int num_nu,index_mu,icount;
 	int l;
 	double ll;
-	double * cl_lensed; /* cl_lensed[index_ct] */
-	double * cl_ee = NULL; /* lensed  cl, to be filled to avoid repeated calls to harmonic_cl_at_l */
-	double * cl_bb = NULL; /* lensed  cl, to be filled to avoid repeated calls to harmonic_cl_at_l */
-	double * cl_aa; /* potential cl_aa, to be filled to avoid repeated calls to harmonic_cl_at_l */
+	double * cl_unrotated; /* cl_unrotated[index_ct] */
+	double * cl_te = NULL; /* unrotated cl, to be filled to avoid repeated calls to harmonic_cl_at_l or lensing_cl_at_l */
+	double * cl_ee = NULL; /* unrotated cl, to be filled to avoid repeated calls to harmonic_cl_at_l or lensing_cl_at_l */
+	double * cl_bb = NULL; /* unrotated cl, to be filled to avoid repeated calls to harmonic_cl_at_l or lensing_cl_at_l */
+	double * cl_aa; /* potential cl_aa */
 
 	double res, resX, rot;
 	double resp, resm, rotp, rotm;
@@ -69,9 +71,19 @@ int rotation_init(
 	else {
 		if (pro->rotation_verbose > 0) {
 			printf("Computing rotated spectra ");
-			if
+			if (ppr->accurate_rotation==_TRUE_)
+				printf("(accurate mode)\n");
+			else
+				printf("(fast mode)\n");
 		}
 	}
+
+	/** - initialize indices and allocate some of the arrays in the
+		rotation structure */
+	class_call(rotation_indices(ppr,phr,pro),
+			   pro->error_message,
+			   pro->error_message);
+
 
 
 	/***************/
@@ -180,7 +192,16 @@ int rotation_init(
   }
 
   free(cl_md_ic);
-  free(cl_md);  
+  free(cl_md);
+
+  /** - Compute Ca\f$(\mu)\f$ **/
+
+  //debut = omp_get_wtime();
+#pragma omp parallel for                        \
+	private (index_mu,l)						\
+	schedule (static)
+  for
+
 
 
 
@@ -196,8 +217,66 @@ int rotation_free(
 int rotaion_indices(
 	struct precision * ppr,
 	struct harmonic * phr,
+	struct lensing * ple,
 	struct rotation * pro
 	){
+
+	int index_l;
+
+	double ** cl_md_ic; /* array with argument
+						   cl_md_ic[index_md][index_ic1_ic2*phr->ct_size+index_ct] */
+
+	double ** cl_md;    /* array with argument
+						   cl_md[index_md][index_ct] */
+
+	int index_md;
+	int index_lt;
+
+	/* indices of all Cl types (lensed and unlensed) */
+
+	if (phr->has_te == _TRUE_) {
+		pro->has_te = _TRUE_;
+		pro->index_lt_te=phr->index_ct_te;
+	}
+	else {
+		pro->has_te==_FALSE_;
+	}
+
+	if (phr->has_ee == _TRUE_) {
+		pro->has_ee = _TRUE_;
+		pro->index_lt_ee=phr->index_ct_ee;
+	}
+	else {
+		pro->has_ee = _FALSE_;
+	}
+
+	if (phr->has_bb == _TRUE_) {
+		pro->has_bb = _TRUE_;
+		pro->index_lt_bb=phr->index_ct_bb;
+	}
+	else {
+		pro->has_bb = _FALSE_;
+	}
+
+	if (phr->has_aa == _TRUE_) {
+		pro->has_aa = _TRUE_;
+		pro->index_lt_aa=phr->index_ct_aa;
+	}
+	else {
+		pro->has_aa = _FALSE_;
+	}
+
+	if (phr->has_ea == _TRUE_) {
+		pro->has_ea = _TRUE_;
+		pro->index_lt_ea=phr->index_ct_ea;
+	}
+	else {
+		pro->has_ea = _FALSE_;
+	}
+
+	pro->lt_size = phr->l_max_tot;
+
+	pro->l_rotated_max = pro->
 
 
 }

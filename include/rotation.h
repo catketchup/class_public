@@ -37,6 +37,7 @@ struct rotation {
 	int has_bb;
 	int has_eb;
 	int has_aa; /**< do we want \f$ C_l^{\alpha\alpha}\f$? (\f$ \alpha \f$ = rotation field) */
+	int has_ea;
 
 	int index_lt_te; /**< index for type \f$ C_l^{TE} \f$*/
 	int index_lt_tb; /**< index for type \f$ C_l^{TB} \f$*/
@@ -44,6 +45,7 @@ struct rotation {
 	int index_lt_bb; /**< index for type \f$ C_l^{BB} \f$*/
 	int index_lt_eb; /**< index for type \f$ C_l^{EB} \f$*/
 	int index_lt_aa; /**< index for type \f$ C_l^{aa} \f$*/
+	int index_lt_ea; /**< index for type \f$ C_l^{ea} \f$*/
 
 	int lt_size; /**< number of \f$ C_l\f$ types requested */
 
