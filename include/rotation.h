@@ -30,7 +30,9 @@ struct rotation {
 	/** @name - information on number of type of C_l's (TT, TE...) */
 
 	//@{
+	int use_lensed; /* use lensed unrotated C_l or unlensed unrotated C_l */
 
+	int has_tt;
 	int has_te;
 	int has_tb;
 	int has_ee;
@@ -39,6 +41,7 @@ struct rotation {
 	int has_aa; /**< do we want \f$ C_l^{\alpha\alpha}\f$? (\f$ \alpha \f$ = rotation field) */
 	int has_ea;
 
+	int index_lt_tt; /**< index for type \f$ C_l^{TT} \f$*/
 	int index_lt_te; /**< index for type \f$ C_l^{TE} \f$*/
 	int index_lt_tb; /**< index for type \f$ C_l^{TB} \f$*/
 	int index_lt_ee; /**< index for type \f$ C_l^{EE} \f$*/
