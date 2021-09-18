@@ -309,7 +309,7 @@ int rotation_init(
 	  schedule (static)
 
 	  for (index_mu;index_mu<num_mu-1;index_mu++) {
-		  for (l=2;l<=ple->l_unrotated_max;l++) {
+		  for (l=2;l<=pro->l_unrotated_max;l++) {
 
 			  ll = (double)l;
 
@@ -343,12 +343,47 @@ int rotation_init(
   /** - compute rotated \f$ C_l\f$'s by multiplation or integration */
   //debut = omp_get_wtime();
 
+}
 
+/* rotation does not change Cl_TT */
 
-
+int rotation_rotated_cl_te(
+	){
 
 }
 
+int rotation_rotated_cl_tb(){
+
+}
+
+/**
+ * This routine computes the rotated power spectra by Gaussian quadrature
+ *
+ * @param ksip  Input: rotated correlation function (ksip[index_mu])
+ * @param d22  Input: Legendre polynomials (\f$ d^l_{22}\f$[l][index_mu])
+ * @param w8   Input: Legendre quadrature weights (w8[index_mu])
+ * @param nmu  Input: Number of quadrature points (0<=index_mu<=nmu)
+ * @param pro  Input/output: Pointer to the rotation structure
+ * @return the error status
+ */
+
+int rotation_rotated_cl_ee(
+	double *ksip,
+	double **d22,
+	double *w8,
+	int nmu,
+	struct rotation *pro
+	){
+
+}
+
+int rotation_rotated_cl_bb(){
+
+}
+
+int rotation_rotated_cl_eb(){
+
+}
 
 int rotation_free(
 	struct rotation * pro
@@ -356,7 +391,7 @@ int rotation_free(
 
 }
 
-int rotaion_indices(
+int rotation_indices(
 	struct precision * ppr,
 	struct harmonic * phr,
 	struct rotation * pro
