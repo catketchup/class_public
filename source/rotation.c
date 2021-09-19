@@ -247,11 +247,15 @@ int rotation_init(
 	  class_call(harmonic_cl_at_l(phr,l,cl_unrotated,cl_md,cl_md_ic),
 				 phr->error_message,
 				 pro->error_message);
-	  cl_aa[l] = cl_unrotated[pro->index_lt_aa];
-
-	  if (pro->has_ee==_TRUE_ || pro->has_bb==_TRUE_) {
+	  cl_tt[l] = cl_unrotated[pro->index_lt_tt];
+	  /* cl_aa[l] = cl_unrotated[pro->index_lt_aa]; */
+	  if (pro->has_ee==_TRUE_ || pro->has_bb==_TRUE_ || pro->has_eb==_TRUE_) {
 		  cl_ee[l] = cl_unrotated[pro->index_lt_ee];
 		  cl_bb[l] = cl_unrotated[pro->index_lt_bb];
+	  }
+
+	  if (pro->has_te==_TRUE_ || pro->has_tb==_TRUE_) {
+		  cl_te[l] = cl_unrotated[pro->index_lt_te];
 	  }
   }
 
@@ -342,10 +346,26 @@ int rotation_init(
 
   /** - compute rotated \f$ C_l\f$'s by multiplation or integration */
   //debut = omp_get_wtime();
+  if (pro->has_tt==_TRUE_) {
+	  class_call(rotation_rotated_cl_tt(cl_tt, pro),
+				 pro->error_message,
+				 pro->error_message);
+
+  }
+
 
 }
 
 /* rotation does not change Cl_TT */
+int rotation_rotated_cl_tt(double *cl_tt,
+						   struct rotation * pro){
+	int index_l;
+	for(index_l=0; index_l<pro->l_size; index_l++){
+		pro->cl_rotated[index_l*pro->lt_size+pro->index_lt_tt] = cl_tt[index_l];
+	}
+
+	return _SUCCESS_;
+}
 
 int rotation_rotated_cl_te(
 	){
@@ -418,20 +438,20 @@ int rotation_indices(
 		pro->has_tt==_FALSE_;
 	}
 
-	if (phr->has_te == _TRUE_) {
-		pro->has_te = _TRUE_;
-		pro->index_lt_te=phr->index_ct_te;
-	}
-	else {
-		pro->has_te==_FALSE_;
-	}
-
 	if (phr->has_ee == _TRUE_) {
 		pro->has_ee = _TRUE_;
 		pro->index_lt_ee=phr->index_ct_ee;
 	}
 	else {
 		pro->has_ee = _FALSE_;
+	}
+
+	if (phr->has_te == _TRUE_) {
+		pro->has_te = _TRUE_;
+		pro->index_lt_te=phr->index_ct_te;
+	}
+	else {
+		pro->has_te==_FALSE_;
 	}
 
 	if (phr->has_bb == _TRUE_) {
@@ -442,21 +462,21 @@ int rotation_indices(
 		pro->has_bb = _FALSE_;
 	}
 
-	if (phr->has_aa == _TRUE_) {
-		pro->has_aa = _TRUE_;
-		pro->index_lt_aa=phr->index_ct_aa;
-	}
-	else {
-		pro->has_aa = _FALSE_;
-	}
+	/* if (phr->has_aa == _TRUE_) { */
+	/* 	pro->has_aa = _TRUE_; */
+	/* 	pro->index_lt_aa=phr->index_ct_aa; */
+	/* } */
+	/* else { */
+	/* 	pro->has_aa = _FALSE_; */
+	/* } */
 
-	if (phr->has_ea == _TRUE_) {
-		pro->has_ea = _TRUE_;
-		pro->index_lt_ea=phr->index_ct_ea;
-	}
-	else {
-		pro->has_ea = _FALSE_;
-	}
+	/* if (phr->has_ea == _TRUE_) { */
+	/* 	pro->has_ea = _TRUE_; */
+	/* 	pro->index_lt_ea=phr->index_ct_ea; */
+	/* } */
+	/* else { */
+	/* 	pro->has_ea = _FALSE_; */
+	/* } */
 
 	pro->lt_size = phr->ct_size;
 

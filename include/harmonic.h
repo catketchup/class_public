@@ -61,8 +61,6 @@ struct harmonic {
   int has_ll; /**< do we want \f$ C_l^{ll}\f$? (l = galaxy lensing potential) */
   int has_tl; /**< do we want \f$ C_l^{Tl}\f$? */
   int has_dl; /**< do we want \f$ C_l^{dl}\f$? */
-  int has_aa; /**< do we want \f$ C_l^{\alpha\alpha}\f$? */
-  int has_ea; /**< do we want \f$ C_l^{E\alpha}\f$? */
 
   int index_ct_tt; /**< index for type \f$ C_l^{TT} \f$*/
   int index_ct_ee; /**< index for type \f$ C_l^{EE} \f$*/
@@ -77,8 +75,6 @@ struct harmonic {
   int index_ct_ll; /**< first index for type \f$ C_l^{ll} \f$((d_size*d_size-(d_size-non_diag)*(d_size-non_diag-1)/2) values) */
   int index_ct_tl; /**< first index for type \f$ C_l^{Tl} \f$(d_size values) */
   int index_ct_dl; /**< first index for type \f$ C_l^{dl} \f$(d_size values) */
-  int index_ct_aa; /**< first index for type \f$ C_l^{\alpha\alpha} \f$(d_size values) */
-  int index_ct_ea; /**< first index for type \f$ C_l^{E\alpha} \f$(d_size values) */
 
   int d_size;      /**< number of bins for which density Cl's are computed */
 
