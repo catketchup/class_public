@@ -353,6 +353,11 @@ int rotation_init(
 
   }
 
+  if (pro->has_ee==_TRUE_ || pro->has_bb==_TRUE_) {
+
+
+  }
+
 
 }
 
@@ -367,7 +372,10 @@ int rotation_rotated_cl_tt(double *cl_tt,
 	return _SUCCESS_;
 }
 
-int rotation_rotated_cl_te(
+int rotation_rotated_cl_te(double *cl_te,
+						   struct rotation * pro,
+						   double alpha,
+						   
 	){
 
 }
@@ -428,38 +436,46 @@ int rotation_indices(
 	int index_md;
 	int index_lt;
 
-	/* indices of all Cl types (roted and unroted) */
+	/* indices of all Cl types (rotated and unrotated) */
+	index_ct=0;
 
 	if (phr->has_tt == _TRUE_) {
 		pro->has_tt = _TRUE_;
-		pro->index_lt_tt=phr->index_ct_tt;
+		pro->index_lt_tt=index_ct;
+		index_ct++;
 	}
 	else {
 		pro->has_tt==_FALSE_;
 	}
 
-	if (phr->has_ee == _TRUE_) {
+	if ((phr->has_ee == _TRUE_) && (phr->has_bb == _TRUE_)) {
 		pro->has_ee = _TRUE_;
-		pro->index_lt_ee=phr->index_ct_ee;
+		pro->has_bb = _TRUE_;
+		pro->has_eb = _TRUE_;
+		pro->index_lt_ee=index_ct;
+		index_ct++;
+		pro->index_lt_bb=index_ct;
+		index_ct++;
+		pro->index_lt_eb=index_ct+1;
+
+
 	}
 	else {
 		pro->has_ee = _FALSE_;
+		pro->has_bb = _FALSE_;
+		pro->has_eb = _FALSE_;
 	}
 
 	if (phr->has_te == _TRUE_) {
 		pro->has_te = _TRUE_;
-		pro->index_lt_te=phr->index_ct_te;
+		pro->has_tb = _TRUE_;
+		pro->index_lt_te=index_ct;
+		index_ct++;
+		pro->index_lt_tb=index_ct+1;
 	}
 	else {
 		pro->has_te==_FALSE_;
-	}
-
-	if (phr->has_bb == _TRUE_) {
-		pro->has_bb = _TRUE_;
-		pro->index_lt_bb=phr->index_ct_bb;
-	}
-	else {
-		pro->has_bb = _FALSE_;
+		pro->has_tb==_FALSE_;
 	}
 
 	/* if (phr->has_aa == _TRUE_) { */
