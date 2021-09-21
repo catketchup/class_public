@@ -1,5 +1,5 @@
 #include "rotation.h"
-#include "roting.h"
+#include "lensing.h"
 #include <time.h>
 
 int rotation_cl_at_l(
@@ -375,7 +375,7 @@ int rotation_rotated_cl_tt(double *cl_tt,
 int rotation_rotated_cl_te(double *cl_te,
 						   struct rotation * pro,
 						   double alpha,
-						   
+
 	){
 
 }
@@ -474,8 +474,8 @@ int rotation_indices(
 		pro->index_lt_tb=index_ct+1;
 	}
 	else {
-		pro->has_te==_FALSE_;
-		pro->has_tb==_FALSE_;
+		pro->has_te = _FALSE_;
+		pro->has_tb = _FALSE_;
 	}
 
 	/* if (phr->has_aa == _TRUE_) { */
