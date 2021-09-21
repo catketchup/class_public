@@ -24,7 +24,7 @@
 #include "lensing.h"
 #include "distortions.h"
 #include "output.h"
-
+#include "rotation.h"
 /**
  * Initialize input parameters from external file.
  *
@@ -45,6 +45,10 @@
  * @return the error status
  */
 
+/**
+ * @param pro     Input: pointer to rotation structure
+ */
+
 int input_init(int argc,
                char **argv,
                struct precision * ppr,
@@ -58,6 +62,7 @@ int input_init(int argc,
                struct lensing *ple,
                struct distortions *psd,
                struct output *pop,
+			   struct rotation *pro,
                ErrorMsg errmsg){
 
   /** Summary: */
@@ -75,7 +80,7 @@ int input_init(int argc,
 
   /** Initialize all parameters given the input 'file_content' structure.
       If its size is null, all parameters take their default values. */
-  class_call(input_read_from_file(&fc,ppr,pba,pth,ppt,ptr,ppm,phr,pfo,ple,psd,pop,
+  class_call(input_read_from_file(&fc,ppr,pba,pth,ppt,ptr,ppm,phr,pfo,ple,psd,pop,pro,
                                   errmsg),
              errmsg,
              errmsg);
@@ -379,6 +384,10 @@ int input_set_root(char* input_file,
  * @return the error status
  */
 
+/**
+ * @param pro     Input: pointer to rotation structure
+ */
+
 int input_read_from_file(struct file_content * pfc,
                          struct precision * ppr,
                          struct background *pba,
@@ -391,6 +400,7 @@ int input_read_from_file(struct file_content * pfc,
                          struct lensing *ple,
                          struct distortions *psd,
                          struct output *pop,
+						 struct rotation *pro,
                          ErrorMsg errmsg) {
 
 
@@ -406,7 +416,7 @@ int input_read_from_file(struct file_content * pfc,
       Before getting into the assignment of parameters and the shooting, we want
       to already fix our precision parameters. No precision parameter should
       depend on any input parameter  */
-  class_call(input_read_precisions(pfc,ppr,pba,pth,ppt,ptr,ppm,phr,pfo,ple,psd,pop,
+  class_call(input_read_precisions(pfc,ppr,pba,pth,ppt,ptr,ppm,phr,pfo,ple,psd,pop,pro,
                                    errmsg),
              errmsg,
              errmsg);
@@ -416,7 +426,7 @@ int input_read_from_file(struct file_content * pfc,
 
   /** Find out if shooting necessary and, eventually, shoot and initialize
       read parameters */
-  class_call(input_shooting(pfc,ppr,pba,pth,ppt,ptr,ppm,phr,pfo,ple,psd,pop,
+  class_call(input_shooting(pfc,ppr,pba,pth,ppt,ptr,ppm,phr,pfo,ple,psd,pop,pro,
                             input_verbose,
                             &has_shooting,
                             errmsg),
@@ -425,7 +435,7 @@ int input_read_from_file(struct file_content * pfc,
 
   /** If no shooting is necessary, initialize read parameters without it */
   if(has_shooting == _FALSE_){
-    class_call(input_read_parameters(pfc,ppr,pba,pth,ppt,ptr,ppm,phr,pfo,ple,psd,pop,
+	  class_call(input_read_parameters(pfc,ppr,pba,pth,ppt,ptr,ppm,phr,pfo,ple,psd,pop,pro,
                                      errmsg),
                errmsg,
                errmsg);
@@ -494,6 +504,10 @@ int input_read_from_file(struct file_content * pfc,
  * @return the error status
  */
 
+/**
+ * @param pro     Input: pointer to rotation structure
+ */
+
 int input_shooting(struct file_content * pfc,
                    struct precision * ppr,
                    struct background *pba,
@@ -506,6 +520,7 @@ int input_shooting(struct file_content * pfc,
                    struct lensing *ple,
                    struct distortions *psd,
                    struct output *pop,
+				   struct rotaion *pro,
                    int input_verbose,
                    int * has_shooting,
                    ErrorMsg errmsg){
@@ -729,7 +744,7 @@ int input_shooting(struct file_content * pfc,
     }
 
     /** Read all parameters from the fc obtained through shooting */
-    class_call(input_read_parameters(&(fzw.fc),ppr,pba,pth,ppt,ptr,ppm,phr,pfo,ple,psd,pop,
+    class_call(input_read_parameters(&(fzw.fc),ppr,pba,pth,ppt,ptr,ppm,phr,pfo,ple,psd,pop,pro,
                                      errmsg),
                errmsg,
                errmsg);
@@ -1415,6 +1430,10 @@ int input_try_unknown_parameters(double * unknown_parameter,
  * @return the error status
  */
 
+/**
+ * @param pro     Input: pointer to rotation structure
+ */
+
 int input_read_precisions(struct file_content * pfc,
                           struct precision * ppr,
                           struct background *pba,
@@ -1427,6 +1446,7 @@ int input_read_precisions(struct file_content * pfc,
                           struct lensing *ple,
                           struct distortions *psd,
                           struct output *pop,
+						  struct rotation *pro,
                           ErrorMsg errmsg){
 
   /** Summary: */
@@ -1481,6 +1501,10 @@ int input_read_precisions(struct file_content * pfc,
  * @return the error status
  */
 
+/**
+ * @param pro     Input: pointer to rotation structure
+ */
+
 int input_read_parameters(struct file_content * pfc,
                           struct precision * ppr,
                           struct background *pba,
@@ -1493,6 +1517,7 @@ int input_read_parameters(struct file_content * pfc,
                           struct lensing *ple,
                           struct distortions *psd,
                           struct output *pop,
+						  struct rotation *pro,
                           ErrorMsg errmsg){
 
   /** Summary: */
@@ -1501,7 +1526,7 @@ int input_read_parameters(struct file_content * pfc,
   int input_verbose=0;
 
   /** Set all input parameters to default values */
-  class_call(input_default_params(pba,pth,ppt,ptr,ppm,phr,pfo,ple,psd,pop),
+  class_call(input_default_params(pba,pth,ppt,ptr,ppm,phr,pfo,ple,psd,pop,pro),
              errmsg,
              errmsg);
 
@@ -1557,6 +1582,12 @@ int input_read_parameters(struct file_content * pfc,
              errmsg,
              errmsg);
 
+  /** Read parameters for lensing quantities */
+  class_call(input_read_parameters_rotation(pfc,ppr,pro,
+											errmsg),
+			 errmsg,
+			 errmsg);
+
   /** Read parameters for distortions quantities */
   class_call(input_read_parameters_distortions(pfc,ppr,psd,
                                                errmsg),
@@ -1570,7 +1601,7 @@ int input_read_parameters(struct file_content * pfc,
              errmsg);
 
   /** Read parameters for output quantities */
-  class_call(input_read_parameters_output(pfc,pba,pth,ppt,ptr,ppm,phr,pfo,ple,psd,pop,
+  class_call(input_read_parameters_output(pfc,pba,pth,ppt,ptr,ppm,phr,pfo,ple,psd,pop,pro,
                                           errmsg),
              errmsg,
              errmsg);
@@ -1609,9 +1640,9 @@ int input_read_parameters_general(struct file_content * pfc,
   int flag1,flag2;
   double param1,param2;
   char string1[_ARGUMENT_LENGTH_MAX_];
-  char * options_output[33] =  {"tCl","pCl","lCl","nCl","dCl","sCl","mPk","mTk","dTk","vTk","sd",
-                                "TCl","PCl","LCl","NCl","DCl","SCl","MPk","MTk","DTk","VTk","Sd",
-                                "TCL","PCL","LCL","NCL","DCL","SCL","MPK","MTK","DTK","VTK","SD"};
+  char * options_output[36] =  {"tCl","pCl","lCl","rCl","nCl","dCl","sCl","mPk","mTk","dTk","vTk","sd",
+                                "TCl","PCl","LCl","RCl","NCl","DCl","SCl","MPk","MTk","DTk","VTk","Sd",
+                                "TCL","PCL","LCL","RCL","NCL","DCL","SCL","MPK","MTK","DTK","VTK","SD"};
   char * options_temp_contributions[10] = {"tsw","eisw","lisw","dop","pol","TSW","EISW","LISW","Dop","Pol"};
   char * options_number_count[8] = {"density","dens","rsd","RSD","lensing","lens","gr","GR"};
   char * options_modes[6] = {"s","v","t","S","V","T"};
@@ -1643,6 +1674,10 @@ int input_read_parameters_general(struct file_content * pfc,
       ppt->has_cl_cmb_lensing_potential = _TRUE_;
       ppt->has_perturbations = _TRUE_;
       ppt->has_cls = _TRUE_;
+    }
+	/* for roation */
+	if ((strstr(string1,"rCl") != NULL) || (strstr(string1,"RCl") != NULL) || (strstr(string1,"RCL") != NULL)) {
+      pro->has_aa = _TRUE_;
     }
     if ((strstr(string1,"nCl") != NULL) || (strstr(string1,"NCl") != NULL) || (strstr(string1,"NCL") != NULL) ||
         (strstr(string1,"dCl") != NULL) || (strstr(string1,"DCl") != NULL) || (strstr(string1,"DCL") != NULL)) {
@@ -1685,11 +1720,11 @@ int input_read_parameters_general(struct file_content * pfc,
     }
 
     /* Test */
-    class_call(parser_check_options(string1, options_output, 33, &flag1),
+    class_call(parser_check_options(string1, options_output, 36, &flag1),
                errmsg,
                errmsg);
     class_test(flag1==_FALSE_,
-               errmsg, "The options for output are {'tCl','pCl','lCl','nCl','dCl','sCl','mPk','mTk','dTk','vTk','Sd'}, you entered '%s'",string1);
+               errmsg, "The options for output are {'tCl','pCl','lCl','rCl',nCl','dCl','sCl','mPk','mTk','dTk','vTk','Sd'}, you entered '%s'",string1);
   }
 
   /** 1.a) Terms contributing to the temperature spectrum */
@@ -4604,6 +4639,38 @@ int input_read_parameters_lensing(struct file_content * pfc,
 
 
 /**
+ * Read the parameters of rotation structure.
+ *
+ * @param pfc     Input: pointer to local structure
+ * @param ppr     Input: pointer to precision structure
+ * @param pro     Input: pointer to rotation structure
+ * @param errmsg  Input: Error message
+ * @return the error status
+ */
+
+int input_read_parameters_rotation(struct file_content * pfc,
+								   struct precision * ppr,
+								   struct rotation * pro,
+								   ErrorMsg errmsg){
+	/** Summary: */
+
+	/** Define local variables */
+	int flag1, flag2;
+	double param1, param2;
+	char string1[_ARGUMENT_LENGTH_MAX_];
+
+	/** 1) Lensed spectra? */
+	/* Read */
+	class_call(parser_read_string(pfc,"rotation",&string1,&flag1,errmsg),
+			   errmsg,
+			   errmsg);
+	/* Complete set of parameters */
+
+	return _SUCCESS_;
+}
+
+
+/**
  * Read free parameters of distortions structure.
  *
  * @param pfc     Input: pointer to local structure
@@ -4941,6 +5008,7 @@ int input_read_parameters_additional(struct file_content* pfc,
  * @return the error status
  */
 
+
 int input_read_parameters_output(struct file_content * pfc,
                                  struct background *pba,
                                  struct thermodynamics *pth,
@@ -4952,6 +5020,7 @@ int input_read_parameters_output(struct file_content * pfc,
                                  struct lensing *ple,
                                  struct distortions *psd,
                                  struct output *pop,
+								 struct rotation *pro,
                                  ErrorMsg errmsg){
 
   /** Summary: */
@@ -5066,6 +5135,7 @@ int input_read_parameters_output(struct file_content * pfc,
   class_read_int("lensing_verbose",ple->lensing_verbose);
   class_read_int("distortions_verbose",psd->distortions_verbose);
   class_read_int("output_verbose",pop->output_verbose);
+  class_read_int("rotation_verbose",pro->rotation_verbose);
 
 
   /**
@@ -5125,6 +5195,10 @@ int input_read_parameters_output(struct file_content * pfc,
  * @return the error status
  */
 
+/**
+ * @param pro     Input: pointer to rotation structure
+ */
+
 int input_default_params(struct background *pba,
                          struct thermodynamics *pth,
                          struct perturbations *ppt,
@@ -5134,7 +5208,8 @@ int input_default_params(struct background *pba,
                          struct fourier * pfo,
                          struct lensing *ple,
                          struct distortions *psd,
-                         struct output *pop) {
+                         struct output *pop,
+						 struct rotation *pro) {
 
   /** Summary: */
 
@@ -5571,6 +5646,9 @@ int input_default_params(struct background *pba,
   /** 1) Lensing */
   ple->has_lensed_cls = _FALSE_;
 
+  /** 1) Rotation */
+  pro->has_rotated_cls = _FALSE_;
+
   /** 2) Should the lensed spectra be rescaled? */
   ptr->lcmb_rescale=1.;
   ptr->lcmb_tilt=0.;
@@ -5661,6 +5739,7 @@ int input_default_params(struct background *pba,
   ple->lensing_verbose = 0;
   psd->distortions_verbose = 0;
   pop->output_verbose = 0;
+  pro->rotation_verbose = 0;
 
   return _SUCCESS_;
 

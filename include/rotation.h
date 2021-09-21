@@ -32,8 +32,8 @@ struct rotation {
 	//@{
 	int use_lensed; /* use lensed unrotated C_l or unlensed unrotated C_l */
 
-	double alpha = 1; 
-	double A_cb = 1;
+	double alpha;
+	double A_cb;
 
 	int has_tt;
 	int has_te;
