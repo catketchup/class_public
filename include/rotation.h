@@ -24,6 +24,7 @@ struct rotation {
 	//@{
 
 	short has_rotated_cls; /**< do we need to compute rotated \f$ C_l\f$'s at all ? */
+	short has_cl_cmb_rotation_spectrum; 
 
 	//@}
 

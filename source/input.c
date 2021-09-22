@@ -1582,7 +1582,7 @@ int input_read_parameters(struct file_content * pfc,
              errmsg,
              errmsg);
 
-  /** Read parameters for lensing quantities */
+  /** Read parameters for rotation quantities */
   class_call(input_read_parameters_rotation(pfc,ppr,pro,
 											errmsg),
 			 errmsg,
@@ -1677,6 +1677,7 @@ int input_read_parameters_general(struct file_content * pfc,
     }
 	/* for roation */
 	if ((strstr(string1,"rCl") != NULL) || (strstr(string1,"RCl") != NULL) || (strstr(string1,"RCL") != NULL)) {
+	  pro->has_cl_cmb_rotation_spectrum;
       pro->has_aa = _TRUE_;
     }
     if ((strstr(string1,"nCl") != NULL) || (strstr(string1,"NCl") != NULL) || (strstr(string1,"NCL") != NULL) ||
@@ -4659,12 +4660,36 @@ int input_read_parameters_rotation(struct file_content * pfc,
 	double param1, param2;
 	char string1[_ARGUMENT_LENGTH_MAX_];
 
-	/** 1) Lensed spectra? */
+	/** 1) Rotated spectra? */
 	/* Read */
 	class_call(parser_read_string(pfc,"rotation",&string1,&flag1,errmsg),
 			   errmsg,
 			   errmsg);
 	/* Complete set of parameters */
+	/* check */
+	if ((flag1 == _TRUE_) && (string_begins_with(string1,'y') || string_begins_with(string1,'Y'))){
+		if ((ppt->has_scalars == _TRUE_) && ((ppt->has_cl_cmb_temperature == _TRUE_) || (ppt->has_cl_cmb_polarization == _TRUE_)) && (pro->has_cl_cmb_rotation_spectrum)){
+			pro->has_rotated_cls = _TRUE_;
+			/* Slightly increase precision by delta_l_max for more precise lensed Cl's*/
+			ppt->l_scalar_max += ppr->delta_l_max;
+		}
+		else {
+			class_stop(errmsg,"you asked for rotated CMB Cls, but this requires a minimal number of options: 'modes' should include 's', 'output' should include 'tCl' and/or 'pCl', and also, importantly, 'rCl', the rotation field power spectrum.");
+		}
+	}
+
+	/* Read */
+	if ((ppt->has_scalars == _TRUE_) && (pro->has_cl_cmb_rotation_spectrum)) {
+
+		class_call(parser_read_double(pfc, "alpha",&param1,&flag1,errmsg),
+				   errmsg,
+				   errmsg);
+		class_call(parser_read_double(pfc, "A_cb",&param1,&flag1,errmsg),
+				   errmsg,
+				   errmsg);
+
+
+	}
 
 	return _SUCCESS_;
 }
