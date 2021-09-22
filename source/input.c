@@ -4687,8 +4687,14 @@ int input_read_parameters_rotation(struct file_content * pfc,
 		class_call(parser_read_double(pfc, "A_cb",&param1,&flag1,errmsg),
 				   errmsg,
 				   errmsg);
-
-
+		if (flag1 == _TRUE_) {
+			pro->alpha = param1;
+		}
+		if (flag2 == _TRUE_) {
+			pro->A_cb = param2;
+		}
+		class_read_double("alpha",pro->alpha);
+		class_read_double("A_cb",ptr->A_cb);
 	}
 
 	return _SUCCESS_;
