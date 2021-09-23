@@ -97,6 +97,7 @@ cdef class Class:
     cdef output op
     cdef lensing le
     cdef distortions sd
+    cdef rotation ro
     cdef file_content fc
 
     cpdef int computed # Flag to see if classy has already computed with the given pars
@@ -204,6 +205,8 @@ cdef class Class:
     def struct_cleanup(self):
         if(self.allocated != True):
           return
+        if "rotation" in self.ncp:
+            rotation_free(&self.ro)
         if "distortions" in self.ncp:
             distortions_free(&self.sd)
         if "lensing" in self.ncp:
@@ -247,6 +250,9 @@ cdef class Class:
         if "distortions" in level:
             if "lensing" not in level:
                 level.append("lensing")
+        if "rotation" in level:
+            if "harmonic" not in level:
+                level.append("harmonic")
         if "lensing" in level:
             if "harmonic" not in level:
                 level.append("harmonic")
@@ -357,7 +363,7 @@ cdef class Class:
         if "input" in level:
             if input_read_from_file(&self.fc, &self.pr, &self.ba, &self.th,
                                     &self.pt, &self.tr, &self.pm, &self.hr,
-                                    &self.fo, &self.le, &self.sd, &self.op, errmsg) == _FAILURE_:
+                                    &self.fo, &self.le, &self.sd, &self.op, &self.ro, errmsg) == _FAILURE_:
                 raise CosmoSevereError(errmsg)
             self.ncp.add("input")
             # This part is done to list all the unread parameters, for debugging
@@ -430,6 +436,13 @@ cdef class Class:
                 self.struct_cleanup()
                 raise CosmoComputationError(self.le.error_message)
             self.ncp.add("lensing")
+
+        if "rotation" in level:
+            if rotation_init(&(self.pr), &(self.pt), &(self.hr),
+                            &(self.fo), &(self.ro)) == _FAILURE_:
+                self.struct_cleanup()
+                raise CosmoComputationError(self.ro.error_message)
+            self.ncp.add("rotation")
 
         if "distortions" in level:
             if distortions_init(&(self.pr), &(self.ba), &(self.th),

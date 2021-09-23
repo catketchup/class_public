@@ -248,7 +248,8 @@ int rotation_init(
 				 phr->error_message,
 				 pro->error_message);
 	  cl_tt[l] = cl_unrotated[pro->index_lt_tt];
-	  /* cl_aa[l] = cl_unrotated[pro->index_lt_aa]; */
+	  /* generate cl_aa */
+	  cl_aa[l] = 2.*_PI_*pro->A_cb*10E-5/(l*(l+1));
 	  if (pro->has_ee==_TRUE_ || pro->has_bb==_TRUE_ || pro->has_eb==_TRUE_) {
 		  cl_ee[l] = cl_unrotated[pro->index_lt_ee];
 		  cl_bb[l] = cl_unrotated[pro->index_lt_bb];
@@ -353,11 +354,50 @@ int rotation_init(
 
   }
 
+  if (pro->has_te==_TRUE_) {
+	  class_call(rotation_rotated_cl_te(cl_te, pro, pro->alpha, Ca[0]),
+				 pro->error_message,
+				 pro->error_message);
+  }
+
+  if (pro->has_tb==_TRUE_) {
+	  class_call(rotation_rotated_cl_tb(cl_te, pro, pro->alpha, Ca[0]),
+				 pro->error_message,
+				 pro->error_message);
+  }
+
   if (pro->has_ee==_TRUE_ || pro->has_bb==_TRUE_) {
 
 
   }
 
+
+}
+
+/**
+ * This routine frees all the memory space allocated by rotation_init().
+ *
+ * To be called at the end of each run, only when no further calls to
+ * rotation_cl_at_l() are needed.
+ *
+ * @param ple Input: pointer to rotation structure (which fields must be freed)
+ * @return the error status
+ */
+
+int rotation_free(
+                 struct rotation * pro
+                 ) {
+
+  if (pro->has_rotated_cls == _TRUE_) {
+
+    free(pro->l);
+    free(pro->cl_rot);
+    free(pro->ddcl_rot);
+    free(pro->l_max_lt);
+
+  }
+
+  return _SUCCESS_;
 
 }
 
@@ -375,13 +415,25 @@ int rotation_rotated_cl_tt(double *cl_tt,
 int rotation_rotated_cl_te(double *cl_te,
 						   struct rotation * pro,
 						   double alpha,
+						   double Ca0){
+	int index_l;
+	for(index_l=0; index_l<pro->l_size; index_l++){
+		pro->cl_rotated[index_l*pro->lt_size+pro->index_lt_te] = cl_te[index_l]*cos(2*pro->alpha)*exp(-2*Ca0);
+	}
 
-	){
-
+	return _SUCCESS_;
 }
 
-int rotation_rotated_cl_tb(){
+int rotation_rotated_cl_tb(double *cl_te,
+						   struct rotation * pro,
+						   double alpha,
+						   double Ca0){
+	int index_l;
+	for(index_l=0; index_l<pro->l_size; index_l++){
+		pro->cl_rotated[index_l*pro->lt_size+pro->index_lt_te] = cl_te[index_l]*sin(2*pro->alpha)*exp(-2*Ca0);
+	}
 
+	return _SUCCESS_;
 }
 
 /**
@@ -413,11 +465,6 @@ int rotation_rotated_cl_eb(){
 
 }
 
-int rotation_free(
-	struct rotation * pro
-	) {
-
-}
 
 int rotation_indices(
 	struct precision * ppr,
