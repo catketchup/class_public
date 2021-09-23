@@ -348,29 +348,43 @@ int rotation_init(
   /** - compute rotated \f$ C_l\f$'s by multiplation or integration */
   //debut = omp_get_wtime();
   if (pro->has_tt==_TRUE_) {
-	  class_call(rotation_rotated_cl_tt(cl_tt, pro),
+	  class_call(rotation_rotated_cl_tt(cl_tt,pro),
 				 pro->error_message,
 				 pro->error_message);
 
   }
 
   if (pro->has_te==_TRUE_) {
-	  class_call(rotation_rotated_cl_te(cl_te, pro, pro->alpha, Ca[0]),
+	  class_call(rotation_rotated_cl_te(cl_te,pro->alpha,Ca[0],pro),
 				 pro->error_message,
 				 pro->error_message);
   }
 
   if (pro->has_tb==_TRUE_) {
-	  class_call(rotation_rotated_cl_tb(cl_te, pro, pro->alpha, Ca[0]),
+	  class_call(rotation_rotated_cl_tb(cl_te,pro->alpha,Ca[0],pro),
 				 pro->error_message,
 				 pro->error_message);
   }
 
   if (pro->has_ee==_TRUE_ || pro->has_bb==_TRUE_) {
-
+	  class_call(roation_rotated_cl_ee_bb(ksip,ksim,d22,dm22,w8,pro->alpha,Ca[0],num_mu-1,pro),
+				 ple->error_message,
+				 ple->error_message);
 
   }
 
+  if (pro->has_eb==_TRUE_) {
+	  class_call(rotation_rotated_cl_eb(ksiX,dm22,w8,alpha,Ca[0],pro->alpha,num_mu-1,pro),
+				 pro->error_message,
+				 pro->error_message);
+  }
+  //fin=omp_get_wtime();
+  //cpu_time = (fin-debut);
+  //printf("time in final lensing computation=%4.3f s\n",cpu_time);
+
+  /** - spline computed \f$ C_l\f$'s in view of interpolation */
+
+  return _SUCCESS_;
 
 }
 
@@ -412,10 +426,21 @@ int rotation_rotated_cl_tt(double *cl_tt,
 	return _SUCCESS_;
 }
 
+/**
+ * This routine computes the lensed power spectra by Gaussian quadrature
+ *
+ * @param cl_te  Input: unrotated cl_te
+ * @param alpha Input: Isotropic rotation angle
+ * @param Ca0   Input:
+ * @param nmu   Input: Number of quadrature points (0<=index_mu<=nmu)
+ * @param pro   Input/output: Pointer to the rotation structure
+ * @return the error status
+ */
 int rotation_rotated_cl_te(double *cl_te,
-						   struct rotation * pro,
 						   double alpha,
-						   double Ca0){
+						   double Ca0,
+						   struct rotation * pro
+						   ){
 	int index_l;
 	for(index_l=0; index_l<pro->l_size; index_l++){
 		pro->cl_rotated[index_l*pro->lt_size+pro->index_lt_te] = cl_te[index_l]*cos(2*pro->alpha)*exp(-2*Ca0);
@@ -424,10 +449,21 @@ int rotation_rotated_cl_te(double *cl_te,
 	return _SUCCESS_;
 }
 
+/**
+ * This routine computes the lensed power spectra by Gaussian quadrature
+ *
+ * @param cl_te  Input: unrotated cl_te
+ * @param alpha Input: Isotropic rotation angle
+ * @param Ca0   Input:
+ * @param nmu   Input: Number of quadrature points (0<=index_mu<=nmu)
+ * @param pro   Input/output: Pointer to the rotation structure
+ * @return the error status
+ */
 int rotation_rotated_cl_tb(double *cl_te,
-						   struct rotation * pro,
 						   double alpha,
-						   double Ca0){
+						   double Ca0,
+						   struct rotation * pro,
+						   ){
 	int index_l;
 	for(index_l=0; index_l<pro->l_size; index_l++){
 		pro->cl_rotated[index_l*pro->lt_size+pro->index_lt_te] = cl_te[index_l]*sin(2*pro->alpha)*exp(-2*Ca0);
@@ -435,6 +471,94 @@ int rotation_rotated_cl_tb(double *cl_te,
 
 	return _SUCCESS_;
 }
+
+/**
+ * This routine computes the lensed power spectra by Gaussian quadrature
+ *
+ * @param ksip  Input: Lensed correlation function (ksi+[index_mu])
+ * @param ksim  Input: Lensed correlation function (ksi-[index_mu])
+ * @param d22   Input: Wigner d-function (\f$ d^l_{22}\f$[l][index_mu])
+ * @param dm22  Input: Wigner d-function (\f$ d^l_{-22}\f$[l][index_mu])
+ * @param w8    Input: Legendre quadrature weights (w8[index_mu])
+ * @param alpha Input: Isotropic rotation angle
+ * @param Ca0   Input:
+ * @param nmu   Input: Number of quadrature points (0<=index_mu<=nmu)
+ * @param pro   Input/output: Pointer to the rotation structure
+ * @return the error status
+ */
+int rotation_rotated_cl_ee_bb(double *ksip,
+							  double *ksim,
+							  double **d22,
+							  double **dm22,
+							  double *w8,
+							  double alpha,
+							  double Ca0,
+							  int nmu,
+							  struct rotation * pro
+	){
+
+	double clp, clm;
+	int imu;
+	int index_l;
+
+	/** Integration by Gauss-Legendre quadrature. **/
+#pragma omp parallel for                        \
+  private (imu,index_l,clp,clm)                 \
+  schedule (static)
+
+	for(index_l=0; index_l < pro->l_size; index_l++){
+		clp=0; clm=0;
+		for (imu=0;imu<nmu;imu++) {
+			clp += ksip[imu]*d22[imu][(int)pro->l[index_l]]*w8[imu]; /* loop could be optimized */
+			clm += cos(4*Ca0)*ksim[imu]*dm22[imu][(int)pro->l[index_l]]*w8[imu]; /* loop could be optimized */
+		}
+		pro->cl_rot[index_l*pro->lt_size+pro->index_lt_ee]=(clp+clm)*exp(-4*Ca0);
+		pro->cl_rot[index_l*pro->lt_size+pro->index_lt_bb]=(clp-clm)*exp(-4*Ca0);
+	}
+
+	return _SUCCESS_;
+}
+
+/**
+ * This routine computes the lensed power spectra by Gaussian quadrature
+ *
+ * @param ksiX Input: Lensed correlation function (ksiX[index_mu])
+ * @param d20  Input: Wigner d-function (\f$ d^l_{20}\f$[l][index_mu])
+ * @param w8   Input: Legendre quadrature weights (w8[index_mu])
+ * @param nmu  Input: Number of quadrature points (0<=index_mu<=nmu)
+ * @param ple  Input/output: Pointer to the lensing structure
+ * @return the error status
+ */
+int rotation_rotated_cl_eb(double *ksiX,
+							  double **dm22,
+							  double *w8,
+							  double alpha,
+							  double Ca0,
+							  int nmu,
+							  struct rotation * pro
+	){
+
+	double clX;
+	int imu;
+	int index_l;
+
+	/** Integration by Gauss-Legendre quadrature. **/
+#pragma omp parallel for                        \
+  private (imu,index_l,clp,clm)                 \
+  schedule (static)
+
+	for(index_l=0; index_l < pro->l_size; index_l++){
+		clX=0;
+		for (imu=0;imu<nmu;imu++) {
+			clX += ksiX[imu]*dm22[imu][(int)pro->l[index_l]]*w8[imu]; /* loop could be optimized */
+		}
+		pro->cl_rot[index_l*pro->lt_size+pro->index_lt_eb]=1/2*exp(-4*Ca0)*sin(4*alpha)*clX;
+	}
+
+	return _SUCCESS_;
+}
+
+
 
 /**
  * This routine computes the rotated power spectra by Gaussian quadrature
@@ -446,24 +570,6 @@ int rotation_rotated_cl_tb(double *cl_te,
  * @param pro  Input/output: Pointer to the rotation structure
  * @return the error status
  */
-
-int rotation_rotated_cl_ee(
-	double *ksip,
-	double **d22,
-	double *w8,
-	int nmu,
-	struct rotation *pro
-	){
-
-}
-
-int rotation_rotated_cl_bb(){
-
-}
-
-int rotation_rotated_cl_eb(){
-
-}
 
 
 int rotation_indices(
