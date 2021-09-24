@@ -24,7 +24,7 @@ struct rotation {
 	//@{
 
 	short has_rotated_cls; /**< do we need to compute rotated \f$ C_l\f$'s at all ? */
-	short has_cl_cmb_rotation_spectrum; 
+	short has_cl_cmb_rotation_spectrum;
 
 	//@}
 
@@ -123,10 +123,42 @@ extern "C" {
 
 	/* int rotation_rotated_cl_tt( */
 	/* 	); */
+	int rotation_rotated_cl_tt(double *cl_tt,
+							   struct rotation * pro
+		);
+
+	int rotation_rotated_cl_te(double *cl_te,
+						   double alpha,
+						   double Ca0,
+						   struct rotation * pro
+		);
+
+	int rotation_rotated_cl_tb(double *cl_te,
+						   double alpha,
+						   double Ca0,
+						   struct rotation * pro,
+		);
+
+	int rotation_rotated_cl_ee_bb(double *ksip,
+								  double *ksim,
+								  double **d22,
+								  double **dm22,
+								  double *w8,
+								  double alpha,
+								  double Ca0,
+								  int nmu,
+								  struct rotation * pro
+		);
 
 
-
-
+	int rotation_rotated_cl_eb(double *ksiX,
+							  double **dm22,
+							  double *w8,
+							  double alpha,
+							  double Ca0,
+							  int nmu,
+							  struct rotation * pro
+		);
 
 
 #ifdef __cplusplus

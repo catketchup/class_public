@@ -5,10 +5,48 @@
 int rotation_cl_at_l(
 	struct rotation * pro,
 	int l,
-	double * cl_rotated
+	double * cl_rotated    /* array with argument cl_rotated[index_ct] (must be already allocated) */
 	) {
 
+	int last_index;
+	int index_lt;
+
+	class_test(l > pro->l_rotated_max,
+			   pro->error_message,
+			   "you asked for rotated Cls at l=%d, they were computed only up to l=%d, you should increase l_max_scalars or decrease the precision parameter delta_l_max",l,pro->l_rotated_max);
+
+	class_call(array_interpolate_spline(pro->l,
+										pro->l_size,
+										pro->cl_rot,
+										pro->ddcl_rot,
+										pro->lt_size,
+										l,
+										&last_index,
+										cl_rotated,
+										pro->lt_size,
+										pro->error_message),
+			   pro->error_message,
+			   pro->error_message);
+
+	/* set to zero for the types such that l<l_max */
+	for (index_lt=0; index_lt<pro->lt_size; index_lt++)
+		if ((int)l > pro->l_max_lt[index_lt])
+			cl_rotated[index_lt]=0.;
+
+	return _SUCCESS_;
 }
+
+/**
+ * This routine initializes the lensing structure (in particular,
+ * computes table of lensed anisotropy spectra \f$ C_l^{X} \f$)
+ *
+ * @param ppr Input: pointer to precision structure
+ * @param ppt Input: pointer to perturbation structure (just in case, not used in current version...)
+ * @param phr Input: pointer to harmonic structure
+ * @param pfo Input: pointer to fourier structure
+ * @param pro Output: pointer to initialized rotation structure
+ * @return the error status
+ */
 
 int rotation_init(
 	struct precision * ppr,
@@ -17,6 +55,9 @@ int rotation_init(
 	struct fourier * pfo,
 	struct rotation * pro
 	) {
+
+	/** Summary: */
+	/** - Define local variables */
 
 	double * mu; /* mu[index_mu]: discretized values of mu
                   between -1 and 1, roots of Legendre polynomial */
@@ -368,8 +409,8 @@ int rotation_init(
 
   if (pro->has_ee==_TRUE_ || pro->has_bb==_TRUE_) {
 	  class_call(roation_rotated_cl_ee_bb(ksip,ksim,d22,dm22,w8,pro->alpha,Ca[0],num_mu-1,pro),
-				 ple->error_message,
-				 ple->error_message);
+				 pro->error_message,
+				 pro->error_message);
 
   }
 
@@ -384,6 +425,21 @@ int rotation_init(
 
   /** - spline computed \f$ C_l\f$'s in view of interpolation */
 
+  class_call(array_spline_table_lines(pro->l,
+                                      pro->l_size,
+                                      pro->cl_rot,
+                                      pro->lt_size,
+                                      pro->ddcl_rot,
+                                      _SPLINE_EST_DERIV_,
+                                      pro->error_message),
+             pro->error_message,
+             pro->error_message);
+
+  /** - Free lots of stuff **/
+  free(buf_dxx);
+  free(d22);
+  free(dm22);
+
   return _SUCCESS_;
 
 }
@@ -394,7 +450,7 @@ int rotation_init(
  * To be called at the end of each run, only when no further calls to
  * rotation_cl_at_l() are needed.
  *
- * @param ple Input: pointer to rotation structure (which fields must be freed)
+ * @param pro Input: pointer to rotation structure (which fields must be freed)
  * @return the error status
  */
 
@@ -412,6 +468,182 @@ int rotation_free(
   }
 
   return _SUCCESS_;
+
+}
+
+int rotation_indices(
+	struct precision * ppr,
+	struct harmonic * phr,
+	struct rotation * pro
+	){
+
+	int index_l;
+
+	double ** cl_md_ic; /* array with argument
+						   cl_md_ic[index_md][index_ic1_ic2*phr->ct_size+index_ct] */
+
+	double ** cl_md;    /* array with argument
+						   cl_md[index_md][index_ct] */
+
+	int index_md;
+	int index_lt;
+
+	/* indices of all Cl types (rotated and unrotated) */
+	index_ct=0;
+
+	if (phr->has_tt == _TRUE_) {
+		pro->has_tt = _TRUE_;
+		pro->index_lt_tt=index_ct;
+		index_ct++;
+	}
+	else {
+		pro->has_tt==_FALSE_;
+	}
+
+	if ((phr->has_ee == _TRUE_) && (phr->has_bb == _TRUE_)) {
+		pro->has_ee = _TRUE_;
+		pro->has_bb = _TRUE_;
+		pro->has_eb = _TRUE_;
+		pro->index_lt_ee=index_ct;
+		index_ct++;
+		pro->index_lt_bb=index_ct;
+		pro->index_lt_eb=index_ct+2;
+		index_ct++;
+
+
+	}
+	else {
+		pro->has_ee = _FALSE_;
+		pro->has_bb = _FALSE_;
+		pro->has_eb = _FALSE_;
+	}
+
+	if (phr->has_te == _TRUE_) {
+		pro->has_te = _TRUE_;
+		pro->has_tb = _TRUE_;
+		pro->index_lt_te=index_ct;
+		pro->index_lt_tb=index_ct+2;
+		index_ct++;
+	}
+	else {
+		pro->has_te = _FALSE_;
+		pro->has_tb = _FALSE_;
+	}
+
+	if (pro->has_aa == _TRUE_) {
+		pro->index_lt_aa=index_ct;
+	}
+	else {
+		pro->has_aa = _FALSE_;
+	}
+
+	/* if (phr->has_ea == _TRUE_) { */
+	/* 	pro->has_ea = _TRUE_; */
+	/* 	pro->index_lt_ea=phr->index_ct_ea; */
+	/* } */
+	/* else { */
+	/* 	pro->has_ea = _FALSE_; */
+	/* } */
+
+	pro->lt_size = index_ct;
+
+	/* number of multipoles */
+
+	pro->l_unrotated_max = phr->l_max_tot;
+
+	pro->l_rotated_max = pro->l_unrotated_max - ppr->delta_l_max;
+
+	for (index_l=0; (index_l < phr->l_size_max) && (phr->l[index_l] <= pro->l_rotated_max);index_l++);
+
+	if (index_l < phr->l_size_max) index_l++; /* one more point in order to be able to interpolate till pro->l_rotated_max */
+
+	pro->l_size = index_l+1;
+
+	class_alloc(pro->l, pro->l_size*sizeof(double),pro->error_message);
+
+	for (index_l=0; index_l < pro->l_size; index_l++) {
+
+		pro->l[index_l] = phr->l[index_l];
+
+	}
+
+	/* allocate table where results will be stored */
+
+	class_alloc(pro->cl_rot,
+				pro->l_size*pro->lt_size*sizeof(double),
+				pro->error_message);
+
+	class_alloc(pro->ddcl_rot,
+				pro->l_size*pro->lt_size*sizeof(double),
+				pro->error_message);
+
+	/* fill with unrotated cls */
+
+	class_alloc(cl_md_ic,
+				phr->md_size*sizeof(double *),
+				pro->error_message);
+
+	class_alloc(cl_md,
+				phr->md_size*sizeof(double *),
+				pro->error_message);
+
+	for (index_md = 0; index_md < phr->md_size; index_md++) {
+
+		if (phr->md_size > 1)
+
+			class_alloc(cl_md[index_md],
+						phr->ct_size*sizeof(double),
+						pro->error_message);
+
+		if (phr->ic_size[index_md] > 1)
+
+			class_alloc(cl_md_ic[index_md],
+						phr->ic_ic_size[index_md]*phr->ct_size*sizeof(double),
+						pro->error_message);
+	}
+
+	for (index_l=0; index_l<pro->l_size; index_l++) {
+
+		class_call(harmonic_cl_at_l(phr,pro->l[index_l],&(pro->cl_rot[index_l*pro->lt_size]),cl_md,cl_md_ic),
+				   phr->error_message,
+				   pro->error_message);
+
+	}
+
+	for (index_md = 0; index_md < phr->md_size; index_md++) {
+
+		if (phr->md_size > 1)
+			free(cl_md[index_md]);
+
+		if (phr->ic_size[index_md] > 1)
+			free(cl_md_ic[index_md]);
+
+	}
+
+	free(cl_md_ic);
+	free(cl_md);
+
+	/* we want to output Cl_rotated up to the same l_max as Cl_unroated
+	   (even if a number delta_l_max of extra values of l have been used
+	   internally for more accurate results). Notable exception to the
+	   above rule: ClBB_rotated(scalars) must be outputed at least up to the same l_max as
+	   ClEE_unrotated(scalars) (since ClBB_unroated is null for scalars)
+	*/
+
+	class_alloc(pro->l_max_lt,pro->lt_size*sizeof(double),pro->error_message);
+	for (index_lt = 0; index_lt < pro->lt_size; index_lt++) {
+		pro->l_max_lt[index_lt]=0.;
+		for (index_md = 0; index_md < phr->md_size; index_md++) {
+			pro->l_max_lt[index_lt]=MAX(pro->l_max_lt[index_lt],phr->l_max_ct[index_md][index_lt]);
+
+			if ((pro->has_bb == _TRUE_) && (pro->has_ee == _TRUE_) && (index_lt == pro->index_lt_bb)) {
+				pro->l_max_lt[index_lt]=MAX(pro->l_max_lt[index_lt],phr->l_max_ct[index_md][pro->index_lt_ee]);
+			}
+
+		}
+	}
+
+	return _SUCCESS_;
 
 }
 
@@ -526,7 +758,7 @@ int rotation_rotated_cl_ee_bb(double *ksip,
  * @param d20  Input: Wigner d-function (\f$ d^l_{20}\f$[l][index_mu])
  * @param w8   Input: Legendre quadrature weights (w8[index_mu])
  * @param nmu  Input: Number of quadrature points (0<=index_mu<=nmu)
- * @param ple  Input/output: Pointer to the lensing structure
+ * @param pro  Input/output: Pointer to the lensing structure
  * @return the error status
  */
 int rotation_rotated_cl_eb(double *ksiX,
@@ -570,184 +802,3 @@ int rotation_rotated_cl_eb(double *ksiX,
  * @param pro  Input/output: Pointer to the rotation structure
  * @return the error status
  */
-
-
-int rotation_indices(
-	struct precision * ppr,
-	struct harmonic * phr,
-	struct rotation * pro
-	){
-
-	int index_l;
-
-	double ** cl_md_ic; /* array with argument
-						   cl_md_ic[index_md][index_ic1_ic2*phr->ct_size+index_ct] */
-
-	double ** cl_md;    /* array with argument
-						   cl_md[index_md][index_ct] */
-
-	int index_md;
-	int index_lt;
-
-	/* indices of all Cl types (rotated and unrotated) */
-	index_ct=0;
-
-	if (phr->has_tt == _TRUE_) {
-		pro->has_tt = _TRUE_;
-		pro->index_lt_tt=index_ct;
-		index_ct++;
-	}
-	else {
-		pro->has_tt==_FALSE_;
-	}
-
-	if ((phr->has_ee == _TRUE_) && (phr->has_bb == _TRUE_)) {
-		pro->has_ee = _TRUE_;
-		pro->has_bb = _TRUE_;
-		pro->has_eb = _TRUE_;
-		pro->index_lt_ee=index_ct;
-		index_ct++;
-		pro->index_lt_bb=index_ct;
-		index_ct++;
-		pro->index_lt_eb=index_ct+1;
-
-
-	}
-	else {
-		pro->has_ee = _FALSE_;
-		pro->has_bb = _FALSE_;
-		pro->has_eb = _FALSE_;
-	}
-
-	if (phr->has_te == _TRUE_) {
-		pro->has_te = _TRUE_;
-		pro->has_tb = _TRUE_;
-		pro->index_lt_te=index_ct;
-		index_ct++;
-		pro->index_lt_tb=index_ct+1;
-	}
-	else {
-		pro->has_te = _FALSE_;
-		pro->has_tb = _FALSE_;
-	}
-
-	/* if (phr->has_aa == _TRUE_) { */
-	/* 	pro->has_aa = _TRUE_; */
-	/* 	pro->index_lt_aa=phr->index_ct_aa; */
-	/* } */
-	/* else { */
-	/* 	pro->has_aa = _FALSE_; */
-	/* } */
-
-	/* if (phr->has_ea == _TRUE_) { */
-	/* 	pro->has_ea = _TRUE_; */
-	/* 	pro->index_lt_ea=phr->index_ct_ea; */
-	/* } */
-	/* else { */
-	/* 	pro->has_ea = _FALSE_; */
-	/* } */
-
-	pro->lt_size = phr->ct_size;
-
-	/* number of multipoles */
-
-	pro->l_unrotated_max = phr->l_max_tot;
-
-	pro->l_rotated_max = pro->l_unrotated_max - ppr->delta_l_max;
-
-	for (index_l=0; (index_l < phr->l_size_max) && (phr->l[index_l] <= pro->l_rotated_max);index_l++);
-
-	if (index_l < phr->l_size_max) index_l++; /* one more point in order to be able to interpolate till pro->l_rotated_max */
-
-	pro->l_size = index_l+1;
-
-	class_alloc(pro->, pro->l_size*sizeof(double),pro->error_message);
-
-	for (index_l=0; index_l < pro->l_size; index_l++) {
-
-		pro->l[index_l] = phr->l[index_l];
-
-	}
-
-	/* allocate table where results will be stored */
-	class_alloc(pro->cl_rot,
-				pro->l_size*pro->lt_size*sizeof(double),
-				pro->error_message);
-
-	class_alloc(pro->ddcl_rot,
-				pro->l_size*pro->lt_size*sizeof(double),
-				pro->error_message);
-
-	/* fill with unrotated cls */
-
-	class_alloc(cl_md_ic,
-				phr->md_size*sizeof(double *),
-				pro->error_message);
-
-	class_alloc(cl_md,
-				phr->md_size*sizeof(double *),
-				pro->error_message);
-
-	for (index_md = 0; index_md < phr->md_size; index_md++) {
-
-		if (phr->md_size > 1)
-
-			class_alloc(cl_md[index_md],
-						phr->ct_size*sizeof(double),
-						pro->error_message);
-
-		if (phr->ic_size[index_md] > 1)
-
-			class_alloc(cl_md_ic[index_md],
-						phr->ic_ic_size[index_md]*phr->ct_size*sizeof(double),
-						pro->error_message);
-	}
-
-	for (index_l=0; index_l<pro->l_size; index_l++) {
-
-		class_call(harmonic_cl_at_l(phr,pro->l[index_l],&(pro->cl_rot[index_l*pro->lt_size]),cl_md,cl_md_ic),
-				   phr->error_message,
-				   pro->error_message);
-
-	}
-
-	for (index_md = 0; index_md < phr->md_size; index_md++) {
-
-		if (phr->md_size > 1)
-			free(cl_md[index_md]);
-
-		if (phr->ic_size[index_md] > 1)
-			free(cl_md_ic[index_md]);
-
-	}
-
-	free(cl_md_ic);
-	free(cl_md);
-
-	/* we want to output Cl_rotated up to the same l_max as Cl_unroated
-	   (even if a number delta_l_max of extra values of l have been used
-	   internally for more accurate results). Notable exception to the
-	   above rule: ClBB_rotated(scalars) must be outputed at least up to the same l_max as
-	   ClEE_unrotated(scalars) (since ClBB_unroated is null for scalars)
-	*/
-
-	class_alloc(pro->l_max_lt,pro->lt_size*sizeof(double),pro->error_message);
-	for (index_lt = 0; index_lt < pro->lt_size; index_lt++) {
-		pro->l_max_lt[index_lt]=0.;
-		for (index_md = 0; index_md < phr->md_size; index_md++) {
-			pro->l_max_lt[index_lt]=MAX(pro->l_max_lt[index_lt],phr->l_max_ct[index_md][index_lt]);
-
-			if ((pro->has_bb == _TRUE_) && (pro->has_ee == _TRUE_) && (index_lt == pro->index_lt_bb)) {
-				pro->l_max_lt[index_lt]=MAX(pro->l_max_lt[index_lt],phr->l_max_ct[index_md][pro->index_lt_ee]);
-			}
-
-		}
-	}
-
-	return _SUCCESS_;
-
-}
-
-
-int rotation_rotated_cl_te(
-	double *)
