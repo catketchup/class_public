@@ -245,6 +245,7 @@ extern "C" {
                  struct fourier * pfo,
                  struct lensing *ple,
                  struct distortions *psd,
+				 struct rotation *pro,
                  struct output *pop,
                  ErrorMsg errmsg);
 
@@ -271,6 +272,7 @@ extern "C" {
                            struct fourier *pfo,
                            struct lensing *ple,
                            struct distortions *psd,
+						   struct rotation *pro,
                            struct output *pop,
                            ErrorMsg errmsg);
 
@@ -287,6 +289,7 @@ extern "C" {
                      struct fourier * pfo,
                      struct lensing *ple,
                      struct distortions *psd,
+					 struct rotation *pro,
                      struct output *pop,
                      int input_verbose,
                      int * has_shooting,
@@ -347,6 +350,7 @@ extern "C" {
                             struct fourier * pfo,
                             struct lensing * ple,
                             struct distortions *psd,
+							struct rotation *pro,
                             struct output * pop,
                             ErrorMsg errmsg);
 
@@ -363,6 +367,7 @@ extern "C" {
                             struct fourier * pfo,
                             struct lensing * ple,
                             struct distortions *psd,
+							struct rotation *pro,
                             struct output * pop,
                             ErrorMsg errmsg);
 
@@ -429,6 +434,11 @@ extern "C" {
                                         struct distortions * psd,
                                         ErrorMsg errmsg);
 
+  int input_read_parameters_rotation(struct file_content * pfc,
+									 struct precision * ppr,
+									 struct rotation * pro,
+									 ErrorMsg errmsg);
+
   int input_read_parameters_additional(struct file_content * pfc,
                                        struct precision * ppr,
                                        struct background * pba,
@@ -444,6 +454,7 @@ extern "C" {
                                    struct harmonic * phr,
                                    struct fourier * pfo,
                                    struct lensing *ple,
+								   struct rotation *pro,
                                    struct distortions *psd,
                                    struct output *pop,
                                    ErrorMsg errmsg);
@@ -458,6 +469,7 @@ extern "C" {
                            struct harmonic *phr,
                            struct fourier *pfo,
                            struct lensing *ple,
+						   struct rotation *pro,
                            struct distortions *psd,
                            struct output *pop);
 

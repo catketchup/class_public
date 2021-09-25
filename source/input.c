@@ -23,8 +23,9 @@
 #include "fourier.h"
 #include "lensing.h"
 #include "distortions.h"
-#include "output.h"
 #include "rotation.h"
+#include "output.h"
+
 /**
  * Initialize input parameters from external file.
  *
@@ -61,8 +62,8 @@ int input_init(int argc,
                struct fourier * pfo,
                struct lensing *ple,
                struct distortions *psd,
-               struct output *pop,
 			   struct rotation *pro,
+               struct output *pop,
                ErrorMsg errmsg){
 
   /** Summary: */
@@ -80,7 +81,7 @@ int input_init(int argc,
 
   /** Initialize all parameters given the input 'file_content' structure.
       If its size is null, all parameters take their default values. */
-  class_call(input_read_from_file(&fc,ppr,pba,pth,ppt,ptr,ppm,phr,pfo,ple,psd,pop,pro,
+  class_call(input_read_from_file(&fc,ppr,pba,pth,ppt,ptr,ppm,phr,pfo,ple,psd,pro,pop,
                                   errmsg),
              errmsg,
              errmsg);
@@ -399,8 +400,8 @@ int input_read_from_file(struct file_content * pfc,
                          struct fourier * pfo,
                          struct lensing *ple,
                          struct distortions *psd,
-                         struct output *pop,
 						 struct rotation *pro,
+                         struct output *pop,
                          ErrorMsg errmsg) {
 
 
@@ -416,7 +417,7 @@ int input_read_from_file(struct file_content * pfc,
       Before getting into the assignment of parameters and the shooting, we want
       to already fix our precision parameters. No precision parameter should
       depend on any input parameter  */
-  class_call(input_read_precisions(pfc,ppr,pba,pth,ppt,ptr,ppm,phr,pfo,ple,psd,pop,pro,
+  class_call(input_read_precisions(pfc,ppr,pba,pth,ppt,ptr,ppm,phr,pfo,ple,psd,pro,pop,
                                    errmsg),
              errmsg,
              errmsg);
@@ -426,7 +427,7 @@ int input_read_from_file(struct file_content * pfc,
 
   /** Find out if shooting necessary and, eventually, shoot and initialize
       read parameters */
-  class_call(input_shooting(pfc,ppr,pba,pth,ppt,ptr,ppm,phr,pfo,ple,psd,pop,pro,
+  class_call(input_shooting(pfc,ppr,pba,pth,ppt,ptr,ppm,phr,pfo,ple,psd,pro,pop,
                             input_verbose,
                             &has_shooting,
                             errmsg),
@@ -435,7 +436,7 @@ int input_read_from_file(struct file_content * pfc,
 
   /** If no shooting is necessary, initialize read parameters without it */
   if(has_shooting == _FALSE_){
-	  class_call(input_read_parameters(pfc,ppr,pba,pth,ppt,ptr,ppm,phr,pfo,ple,psd,pop,pro,
+	  class_call(input_read_parameters(pfc,ppr,pba,pth,ppt,ptr,ppm,phr,pfo,ple,psd,pro,pop,
                                      errmsg),
                errmsg,
                errmsg);
@@ -519,8 +520,8 @@ int input_shooting(struct file_content * pfc,
                    struct fourier * pfo,
                    struct lensing *ple,
                    struct distortions *psd,
-                   struct output *pop,
 				   struct rotaion *pro,
+                   struct output *pop,
                    int input_verbose,
                    int * has_shooting,
                    ErrorMsg errmsg){
@@ -744,7 +745,7 @@ int input_shooting(struct file_content * pfc,
     }
 
     /** Read all parameters from the fc obtained through shooting */
-    class_call(input_read_parameters(&(fzw.fc),ppr,pba,pth,ppt,ptr,ppm,phr,pfo,ple,psd,pop,pro,
+    class_call(input_read_parameters(&(fzw.fc),ppr,pba,pth,ppt,ptr,ppm,phr,pfo,ple,psd,pro,pop,
                                      errmsg),
                errmsg,
                errmsg);
@@ -1445,8 +1446,8 @@ int input_read_precisions(struct file_content * pfc,
                           struct fourier * pfo,
                           struct lensing *ple,
                           struct distortions *psd,
-                          struct output *pop,
 						  struct rotation *pro,
+                          struct output *pop,
                           ErrorMsg errmsg){
 
   /** Summary: */
@@ -1516,8 +1517,8 @@ int input_read_parameters(struct file_content * pfc,
                           struct fourier * pfo,
                           struct lensing *ple,
                           struct distortions *psd,
-                          struct output *pop,
 						  struct rotation *pro,
+                          struct output *pop,
                           ErrorMsg errmsg){
 
   /** Summary: */
@@ -1526,7 +1527,7 @@ int input_read_parameters(struct file_content * pfc,
   int input_verbose=0;
 
   /** Set all input parameters to default values */
-  class_call(input_default_params(pba,pth,ppt,ptr,ppm,phr,pfo,ple,psd,pop,pro),
+  class_call(input_default_params(pba,pth,ppt,ptr,ppm,phr,pfo,ple,psd,pro,pop),
              errmsg,
              errmsg);
 
@@ -1583,7 +1584,7 @@ int input_read_parameters(struct file_content * pfc,
              errmsg);
 
   /** Read parameters for rotation quantities */
-  class_call(input_read_parameters_rotation(pfc,ppr,pro,
+  class_call(input_read_parameters_rotation(pfc,ppr,ppt,pro,
 											errmsg),
 			 errmsg,
 			 errmsg);
@@ -1601,7 +1602,7 @@ int input_read_parameters(struct file_content * pfc,
              errmsg);
 
   /** Read parameters for output quantities */
-  class_call(input_read_parameters_output(pfc,pba,pth,ppt,ptr,ppm,phr,pfo,ple,psd,pop,pro,
+  class_call(input_read_parameters_output(pfc,pba,pth,ppt,ptr,ppm,phr,pfo,ple,psd,pro,pop,
                                           errmsg),
              errmsg,
              errmsg);
@@ -1677,7 +1678,7 @@ int input_read_parameters_general(struct file_content * pfc,
     }
 	/* for roation */
 	if ((strstr(string1,"rCl") != NULL) || (strstr(string1,"RCl") != NULL) || (strstr(string1,"RCL") != NULL)) {
-	  pro->has_cl_cmb_rotation_spectrum;
+	  pro->has_cl_cmb_rotation_spectrum = _TRUE_;
       pro->has_aa = _TRUE_;
     }
     if ((strstr(string1,"nCl") != NULL) || (strstr(string1,"NCl") != NULL) || (strstr(string1,"NCL") != NULL) ||
@@ -4651,6 +4652,7 @@ int input_read_parameters_lensing(struct file_content * pfc,
 
 int input_read_parameters_rotation(struct file_content * pfc,
 								   struct precision * ppr,
+								   struct perturbations * ppt,
 								   struct rotation * pro,
 								   ErrorMsg errmsg){
 	/** Summary: */
@@ -5050,8 +5052,8 @@ int input_read_parameters_output(struct file_content * pfc,
                                  struct fourier * pfo,
                                  struct lensing *ple,
                                  struct distortions *psd,
-                                 struct output *pop,
 								 struct rotation *pro,
+                                 struct output *pop,
                                  ErrorMsg errmsg){
 
   /** Summary: */
@@ -5165,8 +5167,9 @@ int input_read_parameters_output(struct file_content * pfc,
   class_read_int("fourier_verbose",pfo->fourier_verbose);
   class_read_int("lensing_verbose",ple->lensing_verbose);
   class_read_int("distortions_verbose",psd->distortions_verbose);
-  class_read_int("output_verbose",pop->output_verbose);
   class_read_int("rotation_verbose",pro->rotation_verbose);
+  class_read_int("output_verbose",pop->output_verbose);
+
 
 
   /**
@@ -5239,8 +5242,9 @@ int input_default_params(struct background *pba,
                          struct fourier * pfo,
                          struct lensing *ple,
                          struct distortions *psd,
-                         struct output *pop,
-						 struct rotation *pro) {
+						 struct rotation *pro,
+                         struct output *pop
+	) {
 
   /** Summary: */
 
@@ -5769,8 +5773,8 @@ int input_default_params(struct background *pba,
   pfo->fourier_verbose = 0;
   ple->lensing_verbose = 0;
   psd->distortions_verbose = 0;
-  pop->output_verbose = 0;
   pro->rotation_verbose = 0;
+  pop->output_verbose = 0;
 
   return _SUCCESS_;
 

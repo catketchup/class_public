@@ -6,6 +6,7 @@
 #include "common.h"
 #include "lensing.h"
 #include "distortions.h"
+#include "rotation.h"
 
 /**
  * Maximum number of values of redshift at which the spectra will be

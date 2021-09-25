@@ -30,6 +30,7 @@
 #include "harmonic.h"
 #include "distortions.h"
 #include "lensing.h"
+#include "rotation.h"
 #include "output.h"
 
 #endif

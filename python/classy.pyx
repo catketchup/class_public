@@ -363,7 +363,7 @@ cdef class Class:
         if "input" in level:
             if input_read_from_file(&self.fc, &self.pr, &self.ba, &self.th,
                                     &self.pt, &self.tr, &self.pm, &self.hr,
-                                    &self.fo, &self.le, &self.sd, &self.op, &self.ro, errmsg) == _FAILURE_:
+                                    &self.fo, &self.le, &self.sd, &self.ro, &self.op, errmsg) == _FAILURE_:
                 raise CosmoSevereError(errmsg)
             self.ncp.add("input")
             # This part is done to list all the unread parameters, for debugging
@@ -615,6 +615,75 @@ cdef class Class:
 
         free(lcl)
         return cl
+
+    def rotated_cl(self, lmax=-1,nofail=False):
+        """
+        rotated_cl(lmax=-1, nofail=False)
+
+        Return a dictionary of the rotated C_l, computed by CLASS
+
+        Parameters
+        ----------
+        lmax : int, optional
+                Define the maximum l for which the C_l will be returned (inclusively)
+        nofail: bool, optional
+                Check and enforce the computation of the rotation module beforehand
+
+        Returns
+        -------
+        cl : dict
+                Dictionary that contains the power spectrum for 'tt', 'te', etc... The
+                index associated with each is defined wrt. Class convention, and are non
+                important from the python point of view.
+        """
+        cdef int lmaxR
+        cdef double *rcl = <double*> calloc(self.ro.lt_size,sizeof(double))
+
+        # Define a list of integers, refering to the flags and indices of each
+        # possible output Cl. It allows for a clear and concise way of looping
+        # over them, checking if they are defined or not.
+        has_flags = [
+            (self.ro.has_tt, self.ro.index_lt_tt, 'tt'),
+            (self.ro.has_te, self.ro.index_lt_te, 'te'),
+            (self.ro.has_tb, self.ro.index_lt_tb, 'tb'),
+            (self.ro.has_ee, self.ro.index_lt_ee, 'ee'),
+            (self.ro.has_bb, self.ro.index_lt_bb, 'bb'),
+            (self.ro.has_eb, self.ro.index_lt_eb, 'eb')
+            (self.ro.has_aa, self.ro.index_lt_aa, 'aa'),]
+        spectra = []
+
+        for flag, index, name in has_flags:
+            if flag:
+                spectra.append(name)
+
+        if not spectra:
+            raise CosmoSevereError("No rotated Cl computed")
+        lmaxR = self.ro.l_rotated_max
+
+        if lmax == -1:
+            lmax = lmaxR
+        if lmax > lmaxR:
+            if nofail:
+                self._pars_check("l_max_scalars",lmax)
+                self.compute(["rotation"])
+            else:
+                raise CosmoSevereError("Can only compute up to lmax=%d"%lmaxR)
+
+        cl = {}
+        # Simple Cls, for temperature and polarization, are not so big in size
+        for elem in spectra:
+            cl[elem] = np.zeros(lmax+1, dtype=np.double)
+        for ell from 2<=ell<lmax+1:
+            if rotation_cl_at_l(&self.ro,ell,rcl) == _FAILURE_:
+                raise CosmoSevereError(self.ro.error_message)
+            for flag, index, name in has_flags:
+                if name in spectra:
+                    cl[name][ell] = rcl[index]
+        cl['ell'] = np.arange(lmax+1)
+
+        free(rcl)
+        return cl
+
 
     def density_cl(self, lmax=-1, nofail=False):
         """
