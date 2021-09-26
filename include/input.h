@@ -436,6 +436,7 @@ extern "C" {
 
   int input_read_parameters_rotation(struct file_content * pfc,
 									 struct precision * ppr,
+									 struct perturbations * ppt,
 									 struct rotation * pro,
 									 ErrorMsg errmsg);
 

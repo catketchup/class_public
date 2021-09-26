@@ -289,6 +289,30 @@ cdef extern from "class.h":
         int l_unlensed_max
         ErrorMsg error_message
 
+    cdef struct rotation:
+        int has_tt
+	int has_te
+	int has_tb
+	int has_ee
+	int has_bb
+	int has_eb
+        int has_aa
+        int has_ea
+        int index_lt_tt
+        int index_lt_te
+        int index_lt_tb
+        int index_lt_ee
+        int index_lt_bb
+        int index_lt_eb
+        int index_lt_aa
+        int index_lt_ea
+        int * l_max_lt
+        int lt_size
+        int has_rotated_cls
+        int l_rotated_max
+        int l_unrotated_max
+        ErrorMsg error_message
+
     cdef struct fourier:
         short has_pk_matter
         int method
@@ -319,6 +343,7 @@ cdef extern from "class.h":
         FileArg * value
         short * read
 
+    void rotation_free(void*)
     void lensing_free(void*)
     void harmonic_free(void*)
     void transfer_free(void*)
@@ -343,6 +368,7 @@ cdef extern from "class.h":
     int transfer_init(void*,void*,void*,void*,void*,void*)
     int harmonic_init(void*,void*,void*,void*,void*,void*,void*)
     int lensing_init(void*,void*,void*,void*,void*)
+    int rotation_init(void*,void*,void*,void*,void*)
     int distortions_init(void*,void*,void*,void*,void*,void*)
 
     int background_tau_of_z(void* pba, double z,double* tau)
@@ -365,6 +391,7 @@ cdef extern from "class.h":
 
     int harmonic_cl_at_l(void* phr,double l,double * cl,double * * cl_md,double * * cl_md_ic)
     int lensing_cl_at_l(void * ple,int l,double * cl_lensed)
+    int rotation_cl_at_l(void * pro,int l,double * cl_rotated)
 
     int harmonic_pk_at_z(
         void * pba,
