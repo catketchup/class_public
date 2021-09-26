@@ -4,6 +4,7 @@
 #define __ROTATION__
 
 #include "harmonic.h"
+#include "lensing.h"
 
 /**
  * Structure containing everything about rotated spectra that other modules need to know.
@@ -24,7 +25,7 @@ struct rotation {
 	//@{
 
 	short has_rotated_cls; /**< do we need to compute rotated \f$ C_l\f$'s at all ? */
-	short has_cl_cmb_rotation_spectrum;
+	short has_cl_cmb_rotation_spectrum; /**< do we need \f$ C_l \f$'s for CMB rotation power spectrum? */
 
 	//@}
 

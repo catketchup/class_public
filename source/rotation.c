@@ -1,6 +1,41 @@
+/** @file rotation.c Documented rotation module
+ *
+ * Hongbo Cai 09/25/2021
+ *
+ * This module computes the rotated temperature and polarization
+ * anisotropy power spectra \f$ C_l^{X},\f$'s given the
+ * unrotated temperature, polarization and rotation field power spectra.
+ *
+ * Follows
+ *
+ * The following functions can be called from other modules:
+ *
+ * -# rotation_init() at the beginning (but after harmonic_init())
+ * -# rotation_cl_at_l() at any time for computing Cl_rotated at any l
+ * -# rotation_free() at the end
+ */
+
 #include "rotation.h"
 #include "lensing.h"
 #include <time.h>
+
+/**
+ * Anisotropy power spectra \f$ C_l\f$'s for all types, modes and initial conditions.
+ * SO FAR: ONLY SCALAR
+ *
+ * This routine evaluates all the rotated \f$ C_l\f$'s at a given value of l by
+ * picking it in the pre-computed table. When relevant, it also
+ * sums over all initial conditions for each mode, and over all modes.
+ *
+ * This function can be called from whatever module at whatever time,
+ * provided that rotation_init() has been called before, and
+ * rotation_free() has not been called yet.
+ *
+ * @param pro        Input: pointer to rotation structure
+ * @param l          Input: multipole number
+ * @param cl_rotated  Output: rotated \f$ C_l\f$'s for all types (TT, TE, EE, etc..)
+ * @return the error status
+ */
 
 int rotation_cl_at_l(
 	struct rotation * pro,
@@ -37,7 +72,7 @@ int rotation_cl_at_l(
 }
 
 /**
- * This routine initializes the lensing structure (in particular,
+ * This routine initializes the rotation structure (in particular,
  * computes table of lensed anisotropy spectra \f$ C_l^{X} \f$)
  *
  * @param ppr Input: pointer to precision structure
@@ -65,13 +100,13 @@ int rotation_init(
 	double theta,delta_theta;
 
 	double ** d00; /* dmn[index_mu][index_l] */
-	double ** d02;
-	double ** d22;
-	double ** dm22;
+	double ** d02 = NULL;
+	double ** d22 = NULL;
+	double ** dm22 = NULL;
 	double * buf_dxx; /* buffer */
 
 	double * Ca; /* C_a[index_mu] */
-	double * W_Ea; /* W_Ea[index_mu] */
+	/* double * W_Ea; /\* W_Ea[index_mu] *\/ */
 
 	double * ksip = NULL; /* ksip[index_mu] */
 	double * ksim = NULL; /* ksim[index_mu] */
@@ -131,6 +166,9 @@ int rotation_init(
 			   pro->error_message);
 
 	/** - put all precision variables hare; will be stored later in precision structure */
+	/** - Last element in \f$ \mu \f$ will be for \f$ \mu=1 \f$
+      The rest will be chosen as roots of a Gauss-Legendre quadrature **/
+
 	if (ppr->accurate_rotation == _TRUE_) {
 		num_mu=(pro->l_unrotated_max+ppr->num_mu_minus_lmax); /* Must be even ?? CHECK */
 		num_mu += num_mu%2; /* Force it to be even */
@@ -140,6 +178,10 @@ int rotation_init(
 	}
 
 	/** - allocate array of \f$ \mu \f$ values, as well as quadrature weights */
+	class_alloc(mu,
+				num_mu*sizeof(double),
+				pro->error_message);
+	/* Reserve last element of mu for mu=1, needed for sigma2? */
 	mu[num_mu-1] = 1.0;
 
 	class_alloc(w8,
@@ -159,6 +201,7 @@ int rotation_init(
 		//fin = omp_get_wtime();
 		//cpu_time = (fin-debut);
 		//printf("time in quadrature_gauss_legendre=%4.3f s\n",cpu_time);
+
 	} else { /* Crude integration on [0,pi/16]: Riemann sum on theta */
 		delta_theta = _PI_/16. / (double)(num_mu-1);
 		for (index_mu=0;index_mu<num_mu-1;index_mu++) {
@@ -171,6 +214,11 @@ int rotation_init(
 	/** - Compute \f$ d^l_{mm'} (\mu) \f$*/
 
 	icount = 0;
+	class_alloc(d00,
+				num_mu*sizeof(double*),
+				pro->error_message);
+	icount += num_nu*(pro->l_unrotated_max+1);
+
 	if(pro->has_ee==_TRUE_ || pro->has_bb==_TRUE_) {
 		class_alloc(d22,
 				num_nu*sizeof(double*),
@@ -194,6 +242,11 @@ int rotation_init(
 				pro->error_message);
 
 	icount = 0;
+	for (index_mu=0; index_mu<num_mu; index_mu++) {
+		d00[index_mu] = &(buf_dxx[icount+index_mu            * (pro->l_unlensed_max+1)]);
+	}
+	icount +=num_nu*(pro->l_unrotated_max+1);
+
 	if (pro->has_ee==_TRUE_ || pro->has_bb==_TRUE_) {
 		for (index_mu=0; index_mu<num_nu; index_mu++){
 			d22[index_mu] = &(buf_dxx[icount+index_mu            * (pro->l_unrotated_max+1)]);
@@ -201,6 +254,7 @@ int rotation_init(
 		}
 		icount +=2*num_nu*(pro->l_unrotated_max+1);
 	}
+
 	if (pro->has_eb==_TRUE_) {
 		for (index_mu=0; index_mu<num_nu; index_mu++){
 			dm22[index_mu] = &(buf_dxx[icount+(index_mu+num_mu)  * (pro->l_unrotated_max+1)]);
@@ -243,7 +297,7 @@ int rotation_init(
 					  (pro->l_unrotated_max+1)*sizeof(double),
 					  pro->error_message);
 	}
-	if (pro->has_ee==_TRUE_ || pro->has_bb==_TRUE_) {
+	if (pro->has_ee==_TRUE_ || pro->has_bb==_TRUE_ || pro->has_eb==_TRUE_) {
 		class_alloc(cl_ee,
 					  (pro->l_unrotated_max+1)*sizeof(double),
 					  pro->error_message);
@@ -251,12 +305,6 @@ int rotation_init(
 					(pro->l_unrotated_max+1)*sizeof(double),
 					pro->error_message);
 	}
-	if (pro->has_eb==_TRUE_) {
-		class_alloc(cl_eb,
-					(pro->l_unrotated_max+1)*sizeof(double),
-					pro->error_message);
-	}
-
 	class_alloc(cl_aa,
 				(pro->l_unrotated_max+1)*sizeof(double),
 				pro->error_message);
@@ -758,7 +806,7 @@ int rotation_rotated_cl_ee_bb(double *ksip,
  * @param d20  Input: Wigner d-function (\f$ d^l_{20}\f$[l][index_mu])
  * @param w8   Input: Legendre quadrature weights (w8[index_mu])
  * @param nmu  Input: Number of quadrature points (0<=index_mu<=nmu)
- * @param pro  Input/output: Pointer to the lensing structure
+ * @param pro  Input/output: Pointer to the rotation structure
  * @return the error status
  */
 int rotation_rotated_cl_eb(double *ksiX,

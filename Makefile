@@ -93,7 +93,7 @@ endif
 
 TOOLS = growTable.o dei_rkck.o sparse.o evolver_rkck.o  evolver_ndf15.o arrays.o parser.o quadrature.o hyperspherical.o common.o trigonometric_integrals.o
 
-SOURCE = input.o background.o thermodynamics.o perturbations.o primordial.o fourier.o transfer.o harmonic.o lensing.o distortions.o
+SOURCE = input.o background.o thermodynamics.o perturbations.o primordial.o fourier.o transfer.o harmonic.o lensing.o rotation.o distortions.o
 
 INPUT = input.o
 
@@ -114,6 +114,8 @@ HARMONIC = harmonic.o
 FOURIER = fourier.o
 
 LENSING = lensing.o
+
+ROTATION = rotation.o
 
 DISTORTIONS = distortions.o
 
