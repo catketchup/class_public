@@ -86,7 +86,7 @@ int rotation_cl_at_l(
 int rotation_init(
 	struct precision * ppr,
 	struct perturbations * ppt,
-	struct harmoic * phr,
+	struct harmonic * phr,
 	struct fourier * pfo,
 	struct rotation * pro
 	) {
@@ -114,7 +114,7 @@ int rotation_init(
 
 	double fac;
 
-	int num_nu,index_mu,icount;
+	int num_mu,index_mu,icount;
 	int l;
 	double ll;
 	double * cl_unrotated; /* cl_unrotated[index_ct] */
@@ -217,23 +217,23 @@ int rotation_init(
 	class_alloc(d00,
 				num_mu*sizeof(double*),
 				pro->error_message);
-	icount += num_nu*(pro->l_unrotated_max+1);
+	icount += num_mu*(pro->l_unrotated_max+1);
 
 	if(pro->has_ee==_TRUE_ || pro->has_bb==_TRUE_) {
 		class_alloc(d22,
-				num_nu*sizeof(double*),
+				num_mu*sizeof(double*),
 				pro->error_message);
 
 		class_alloc(dm22,
-				num_nu*sizeof(double*),
+				num_mu*sizeof(double*),
 				pro->error_message);
-		icount += 2*num_nu*(pro->l_unrotated_max+1);
+		icount += 2*num_mu*(pro->l_unrotated_max+1);
 	}
 	if(pro->has_eb==_TRUE_) {
 		class_alloc(dm22,
-				num_nu*sizeof(double*),
+				num_mu*sizeof(double*),
 				pro->error_message);
-		icount += num_nu*(pro->l_unrotated_max+1);
+		icount += num_mu*(pro->l_unrotated_max+1);
 	}
 
 	/** - Allocate main contiguous buffer **/
@@ -243,23 +243,23 @@ int rotation_init(
 
 	icount = 0;
 	for (index_mu=0; index_mu<num_mu; index_mu++) {
-		d00[index_mu] = &(buf_dxx[icount+index_mu            * (pro->l_unlensed_max+1)]);
+		d00[index_mu] = &(buf_dxx[icount+index_mu            * (pro->l_unrotated_max+1)]);
 	}
-	icount +=num_nu*(pro->l_unrotated_max+1);
+	icount +=num_mu*(pro->l_unrotated_max+1);
 
 	if (pro->has_ee==_TRUE_ || pro->has_bb==_TRUE_) {
-		for (index_mu=0; index_mu<num_nu; index_mu++){
+		for (index_mu=0; index_mu<num_mu; index_mu++){
 			d22[index_mu] = &(buf_dxx[icount+index_mu            * (pro->l_unrotated_max+1)]);
 			dm22[index_mu] = &(buf_dxx[icount+(index_mu+num_mu)  * (pro->l_unrotated_max+1)]);
 		}
-		icount +=2*num_nu*(pro->l_unrotated_max+1);
+		icount +=2*num_mu*(pro->l_unrotated_max+1);
 	}
 
 	if (pro->has_eb==_TRUE_) {
-		for (index_mu=0; index_mu<num_nu; index_mu++){
+		for (index_mu=0; index_mu<num_mu; index_mu++){
 			dm22[index_mu] = &(buf_dxx[icount+(index_mu+num_mu)  * (pro->l_unrotated_max+1)]);
 		}
-		icount +=num_nu*(pro->l_unrotated_max+1);
+		icount +=num_mu*(pro->l_unrotated_max+1);
 	}
 
 
@@ -285,7 +285,7 @@ int rotation_init(
 
 	/** - compute \f$ Ca(\mu)\f$ */
 	class_alloc(Ca,
-				num_nu*sizeof(double),
+				num_mu*sizeof(double),
 				pro->error_message);
 
 	/** - Locally store unrotated temperature \f$ cl\f$ and potential \f$ cl_{aa}\f$ spectra **/
@@ -403,39 +403,39 @@ int rotation_init(
 				   pro->error_message);
   }
   //debut = omp_get_wtime();
-#pragma omp parallel for
-  private (index_mu, l, ll, resp, resm, resX, fac)  \
-	  schedule (static)
+#pragma omp parallel for                                \
+    private (index_mu, l, ll, resp, resm, resX, fac)	\
+    schedule (static)
 
-	  for (index_mu;index_mu<num_mu-1;index_mu++) {
+  for (index_mu=0;index_mu<num_mu-1;index_mu++) {
 
-		  for (l=2;l<=pro->l_unrotated_max;l++) {
+	  for (l=2;l<=pro->l_unrotated_max;l++) {
 
-			  ll = (double)l;
+		  ll = (double)l;
 
-			  fac = 2*ll+1;
+		  fac = 2*ll+1;
 
-			  if (pro->has_ee==_TRUE_ || pro->has_bb==_TRUE_) {
+		  if (pro->has_ee==_TRUE_ || pro->has_bb==_TRUE_) {
 
-				  resp = fac*d22[index_mu][l]*(cl_ee[l]+cl_bb[l]);
-				  resm = fac*dm22[index_mu][l]*(cl_ee[l]-cl_bb[l]);
+			  resp = fac*d22[index_mu][l]*(cl_ee[l]+cl_bb[l]);
+			  resm = fac*dm22[index_mu][l]*(cl_ee[l]-cl_bb[l]);
 
-				  ksip[index_mu] += resp;
-				  ksim[index_mu] += resm;
-			  }
-
-			  if (pro->has_eb==_TRUE_) {
-				  resX = fac*dm22[index_mu][l]*(cl_ee[l]-cl_bb[l]);
-
-				  ksiX[index_mu] += resX;
-			  }
+			  ksip[index_mu] += resp;
+			  ksim[index_mu] += resm;
 		  }
 
-		  ksip[index_mu] *= exp(4*Ca[index_mu]);
-		  ksim[index_mu] *= exp(-4*Ca[index_mu]);
-		  ksiX[index_mu] *= exp(-4*Ca[index_mu]);
+		  if (pro->has_eb==_TRUE_) {
+			  resX = fac*dm22[index_mu][l]*(cl_ee[l]-cl_bb[l]);
 
+			  ksiX[index_mu] += resX;
+		  }
 	  }
+
+	  ksip[index_mu] *= exp(4*Ca[index_mu]);
+	  ksim[index_mu] *= exp(-4*Ca[index_mu]);
+	  ksiX[index_mu] *= exp(-4*Ca[index_mu]);
+
+  }
   //fin = omp_get_wtime();
   //cpu_time = (fin-debut);
   //printf("time in ksi=%4.3f s\n",cpu_time);
@@ -462,7 +462,7 @@ int rotation_init(
   }
 
   if (pro->has_ee==_TRUE_ || pro->has_bb==_TRUE_) {
-	  class_call(roation_rotated_cl_ee_bb(ksip,ksim,d22,dm22,w8,pro->alpha,Ca[0],num_mu-1,pro),
+	  class_call(rotation_rotated_cl_ee_bb(ksip,ksim,d22,dm22,w8,pro->alpha,Ca[0],num_mu-1,pro),
 				 pro->error_message,
 				 pro->error_message);
 
@@ -557,7 +557,7 @@ int rotation_indices(
 						   cl_md[index_md][index_ct] */
 
 	int index_md;
-	int index_lt;
+	int index_ct;
 
 	/* indices of all Cl types (rotated and unrotated) */
 	index_ct=0;
@@ -702,13 +702,13 @@ int rotation_indices(
 	*/
 
 	class_alloc(pro->l_max_lt,pro->lt_size*sizeof(double),pro->error_message);
-	for (index_lt = 0; index_lt < pro->lt_size; index_lt++) {
-		pro->l_max_lt[index_lt]=0.;
+	for (index_ct = 0; index_ct < pro->lt_size; index_ct++) {
+		pro->l_max_lt[index_ct]=0.;
 		for (index_md = 0; index_md < phr->md_size; index_md++) {
-			pro->l_max_lt[index_lt]=MAX(pro->l_max_lt[index_lt],phr->l_max_ct[index_md][index_lt]);
+			pro->l_max_lt[index_ct]=MAX(pro->l_max_lt[index_ct],phr->l_max_ct[index_md][index_ct]);
 
-			if ((pro->has_bb == _TRUE_) && (pro->has_ee == _TRUE_) && (index_lt == pro->index_lt_bb)) {
-				pro->l_max_lt[index_lt]=MAX(pro->l_max_lt[index_lt],phr->l_max_ct[index_md][pro->index_lt_ee]);
+			if ((pro->has_bb == _TRUE_) && (pro->has_ee == _TRUE_) && (index_ct == pro->index_lt_bb)) {
+				pro->l_max_lt[index_ct]=MAX(pro->l_max_lt[index_ct],phr->l_max_ct[index_md][pro->index_lt_ee]);
 			}
 
 		}
@@ -769,7 +769,7 @@ int rotation_rotated_cl_te(double *cl_te,
 int rotation_rotated_cl_tb(double *cl_te,
 						   double alpha,
 						   double Ca0,
-						   struct rotation * pro,
+						   struct rotation * pro
 						   ){
 	int index_l;
 	for(index_l=0; index_l<pro->l_size; index_l++){
@@ -851,7 +851,7 @@ int rotation_rotated_cl_eb(double *ksiX,
 
 	/** Integration by Gauss-Legendre quadrature. **/
 #pragma omp parallel for                        \
-  private (imu,index_l,clp,clm)                 \
+  private (imu,index_l,clX)                 \
   schedule (static)
 
 	for(index_l=0; index_l < pro->l_size; index_l++){

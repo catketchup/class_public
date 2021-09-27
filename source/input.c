@@ -520,7 +520,7 @@ int input_shooting(struct file_content * pfc,
                    struct fourier * pfo,
                    struct lensing *ple,
                    struct distortions *psd,
-				   struct rotaion *pro,
+				   struct rotation *pro,
                    struct output *pop,
                    int input_verbose,
                    int * has_shooting,
@@ -1076,6 +1076,7 @@ int input_get_guess(double *xguess,
   struct harmonic hr;          /* for output spectra */
   struct fourier fo;        /* for non-linear spectra */
   struct lensing le;          /* for lensed spectra */
+  struct rotation ro;
   struct distortions sd;      /* for spectral distortions */
   struct output op;           /* for output files */
   int i;
@@ -1085,11 +1086,11 @@ int input_get_guess(double *xguess,
   /* Cheat to read only known parameters: */
   pfzw->fc.size -= pfzw->target_size;
 
-  class_call(input_read_precisions(&(pfzw->fc),&pr,&ba,&th,&pt,&tr,&pm,&hr,&fo,&le,&sd,&op,
+  class_call(input_read_precisions(&(pfzw->fc),&pr,&ba,&th,&pt,&tr,&pm,&hr,&fo,&le,&sd,&ro,&op,
                                    errmsg),
              errmsg,
              errmsg);
-  class_call(input_read_parameters(&(pfzw->fc),&pr,&ba,&th,&pt,&tr,&pm,&hr,&fo,&le,&sd,&op,
+  class_call(input_read_parameters(&(pfzw->fc),&pr,&ba,&th,&pt,&tr,&pm,&hr,&fo,&le,&sd,&ro,&op,
                                    errmsg),
              errmsg,
              errmsg);
@@ -1223,6 +1224,7 @@ int input_try_unknown_parameters(double * unknown_parameter,
   struct fourier fo;        /* for non-linear spectra */
   struct lensing le;          /* for lensed spectra */
   struct distortions sd;      /* for spectral distortions */
+  struct rotation ro;
   struct output op;           /* for output files */
 
   int i;
@@ -1241,12 +1243,12 @@ int input_try_unknown_parameters(double * unknown_parameter,
     sprintf(pfzw->fc.value[pfzw->unknown_parameters_index[i]],"%.20e",unknown_parameter[i]);
   }
 
-  class_call(input_read_precisions(&(pfzw->fc),&pr,&ba,&th,&pt,&tr,&pm,&hr,&fo,&le,&sd,&op,
+  class_call(input_read_precisions(&(pfzw->fc),&pr,&ba,&th,&pt,&tr,&pm,&hr,&fo,&le,&sd,&ro,&op,
                                    errmsg),
              errmsg,
              errmsg);
 
-  class_call(input_read_parameters(&(pfzw->fc),&pr,&ba,&th,&pt,&tr,&pm,&hr,&fo,&le,&sd,&op,
+  class_call(input_read_parameters(&(pfzw->fc),&pr,&ba,&th,&pt,&tr,&pm,&hr,&fo,&le,&sd,&ro,&op,
                                    errmsg),
              errmsg,
              errmsg);
@@ -1540,7 +1542,7 @@ int input_read_parameters(struct file_content * pfc,
    * This function is exclusively for those parameters, NOT
    *  related to any physical species
    * */
-  class_call(input_read_parameters_general(pfc,pba,pth,ppt,psd,
+  class_call(input_read_parameters_general(pfc,pba,pth,ppt,psd,pro,
                                            errmsg),
              errmsg,
              errmsg);
@@ -1633,6 +1635,7 @@ int input_read_parameters_general(struct file_content * pfc,
                                   struct thermodynamics * pth,
                                   struct perturbations * ppt,
                                   struct distortions * psd,
+								  struct rotation * pro,
                                   ErrorMsg errmsg){
 
   /** Summary: */
@@ -1676,7 +1679,7 @@ int input_read_parameters_general(struct file_content * pfc,
       ppt->has_perturbations = _TRUE_;
       ppt->has_cls = _TRUE_;
     }
-	/* for roation */
+	/* for rotation */
 	if ((strstr(string1,"rCl") != NULL) || (strstr(string1,"RCl") != NULL) || (strstr(string1,"RCL") != NULL)) {
 	  pro->has_cl_cmb_rotation_spectrum = _TRUE_;
       pro->has_aa = _TRUE_;
@@ -4696,7 +4699,7 @@ int input_read_parameters_rotation(struct file_content * pfc,
 			pro->A_cb = param2;
 		}
 		class_read_double("alpha",pro->alpha);
-		class_read_double("A_cb",ptr->A_cb);
+		class_read_double("A_cb",pro->A_cb);
 	}
 
 	return _SUCCESS_;

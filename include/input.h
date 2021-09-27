@@ -376,6 +376,7 @@ extern "C" {
                                     struct thermodynamics * pth,
                                     struct perturbations * ppt,
                                     struct distortions * psd,
+									struct rotation * pro,
                                     ErrorMsg errmsg);
 
   int input_read_parameters_species(struct file_content * pfc,
@@ -455,8 +456,8 @@ extern "C" {
                                    struct harmonic * phr,
                                    struct fourier * pfo,
                                    struct lensing *ple,
-								   struct rotation *pro,
                                    struct distortions *psd,
+								   struct rotation *pro,
                                    struct output *pop,
                                    ErrorMsg errmsg);
 
@@ -470,8 +471,8 @@ extern "C" {
                            struct harmonic *phr,
                            struct fourier *pfo,
                            struct lensing *ple,
-						   struct rotation *pro,
                            struct distortions *psd,
+						   struct rotation *pro,
                            struct output *pop);
 
   /* get version number */

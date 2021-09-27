@@ -137,7 +137,7 @@ extern "C" {
 	int rotation_rotated_cl_tb(double *cl_te,
 						   double alpha,
 						   double Ca0,
-						   struct rotation * pro,
+						   struct rotation * pro
 		);
 
 	int rotation_rotated_cl_ee_bb(double *ksip,

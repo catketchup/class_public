@@ -335,6 +335,7 @@ struct primordial;
 struct harmonic;
 struct fourier;
 struct lensing;
+struct rotation;
 struct distortions;
 struct output;
 
