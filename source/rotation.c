@@ -372,7 +372,7 @@ int rotation_init(
 	  Ca[index_mu] = 0;
 
 	  for (l=2; l<=pro->l_unrotated_max; l++) {
-		  Ca[index_mu] += (2.*l+1.)*cl_aa[l]*d00[index_mu];
+		  Ca[index_mu] += (2.*l+1.)*cl_aa[l]*d00[index_mu][l];
 	  }
 
 	  Ca[index_mu] /= 4.*_PI_;
@@ -383,7 +383,12 @@ int rotation_init(
   /** - --> ksip, ksim for EE, BB **/
   if (pro->has_ee==_TRUE_ || pro->has_bb==_TRUE_) {
 
-	  class_calloc(ksi,
+	  class_calloc(ksip,
+				   (num_mu-1),
+				   sizeof(double),
+				   pro->error_message);
+
+	  class_calloc(ksim,
 				   (num_mu-1),
 				   sizeof(double),
 				   pro->error_message);
@@ -399,10 +404,11 @@ int rotation_init(
   }
   //debut = omp_get_wtime();
 #pragma omp parallel for
-  private (index_mu, l, ll, resp, resm, resX)  \
+  private (index_mu, l, ll, resp, resm, resX, fac)  \
 	  schedule (static)
 
 	  for (index_mu;index_mu<num_mu-1;index_mu++) {
+
 		  for (l=2;l<=pro->l_unrotated_max;l++) {
 
 			  ll = (double)l;
@@ -412,14 +418,14 @@ int rotation_init(
 			  if (pro->has_ee==_TRUE_ || pro->has_bb==_TRUE_) {
 
 				  resp = fac*d22[index_mu][l]*(cl_ee[l]+cl_bb[l]);
-				  resm = fac*d22[index_mu][l]*(cl_ee[l]-cl_bb[l]);
+				  resm = fac*dm22[index_mu][l]*(cl_ee[l]-cl_bb[l]);
 
 				  ksip[index_mu] += resp;
 				  ksim[index_mu] += resm;
 			  }
 
 			  if (pro->has_eb==_TRUE_) {
-				  resX = fac*d22[index_mu][l]*(cl_ee[l]-cl_bb[l]);
+				  resX = fac*dm22[index_mu][l]*(cl_ee[l]-cl_bb[l]);
 
 				  ksiX[index_mu] += resX;
 			  }
@@ -463,7 +469,7 @@ int rotation_init(
   }
 
   if (pro->has_eb==_TRUE_) {
-	  class_call(rotation_rotated_cl_eb(ksiX,dm22,w8,alpha,Ca[0],pro->alpha,num_mu-1,pro),
+	  class_call(rotation_rotated_cl_eb(ksiX,dm22,w8,pro->alpha,Ca[0],num_mu-1,pro),
 				 pro->error_message,
 				 pro->error_message);
   }
@@ -485,8 +491,25 @@ int rotation_init(
 
   /** - Free lots of stuff **/
   free(buf_dxx);
-  free(d22);
-  free(dm22);
+  free(d00);
+  if (pro->has_ee==_TRUE_ || pro->has_bb==_TRUE_ || pro->has_eb==_TRUE_) {
+	  free(d22);
+	  free(dm22);
+  }
+  free(Ca);
+  free(mu);
+  free(w8);
+
+  free(cl_unrotated);
+  free(cl_tt);
+  if (pro->has_te==_TRUE_ || pro->has_tb==_TRUE_)
+	  free(cl_te);
+  if (pro->has_ee==_TRUE_ || pro->has_bb==_TRUE_ || pro->has_eb==_TRUE_) {
+	  free(cl_ee);
+	  free(cl_bb);
+  }
+  free(cl_aa);
+  /** - Exit **/
 
   return _SUCCESS_;
 
@@ -695,19 +718,23 @@ int rotation_indices(
 
 }
 
-/* rotation does not change Cl_TT */
+/**
+ * rotation does not change Cl_TT
+ * @param cl_tt  Input: unrotated cl_tt
+ * @param pro   Input/output: Pointer to the rotation structure
+ */
 int rotation_rotated_cl_tt(double *cl_tt,
 						   struct rotation * pro){
 	int index_l;
 	for(index_l=0; index_l<pro->l_size; index_l++){
-		pro->cl_rotated[index_l*pro->lt_size+pro->index_lt_tt] = cl_tt[index_l];
+		pro->cl_rot[index_l*pro->lt_size+pro->index_lt_tt] = cl_tt[index_l];
 	}
 
 	return _SUCCESS_;
 }
 
 /**
- * This routine computes the lensed power spectra by Gaussian quadrature
+ * This routine computes the rotation power spectra by Gaussian quadrature
  *
  * @param cl_te  Input: unrotated cl_te
  * @param alpha Input: Isotropic rotation angle
@@ -723,14 +750,14 @@ int rotation_rotated_cl_te(double *cl_te,
 						   ){
 	int index_l;
 	for(index_l=0; index_l<pro->l_size; index_l++){
-		pro->cl_rotated[index_l*pro->lt_size+pro->index_lt_te] = cl_te[index_l]*cos(2*pro->alpha)*exp(-2*Ca0);
+		pro->cl_rot[index_l*pro->lt_size+pro->index_lt_te] = cl_te[index_l]*cos(2*pro->alpha)*exp(-2*Ca0);
 	}
 
 	return _SUCCESS_;
 }
 
 /**
- * This routine computes the lensed power spectra by Gaussian quadrature
+ * This routine computes the rotated power spectra by Gaussian quadrature
  *
  * @param cl_te  Input: unrotated cl_te
  * @param alpha Input: Isotropic rotation angle
@@ -746,17 +773,17 @@ int rotation_rotated_cl_tb(double *cl_te,
 						   ){
 	int index_l;
 	for(index_l=0; index_l<pro->l_size; index_l++){
-		pro->cl_rotated[index_l*pro->lt_size+pro->index_lt_te] = cl_te[index_l]*sin(2*pro->alpha)*exp(-2*Ca0);
+		pro->cl_rot[index_l*pro->lt_size+pro->index_lt_te] = cl_te[index_l]*sin(2*pro->alpha)*exp(-2*Ca0);
 	}
 
 	return _SUCCESS_;
 }
 
 /**
- * This routine computes the lensed power spectra by Gaussian quadrature
+ * This routine computes the rotation power spectra by Gaussian quadrature
  *
- * @param ksip  Input: Lensed correlation function (ksi+[index_mu])
- * @param ksim  Input: Lensed correlation function (ksi-[index_mu])
+ * @param ksip  Input: rotated correlation function (ksi+[index_mu])
+ * @param ksim  Input: rotated correlation function (ksi-[index_mu])
  * @param d22   Input: Wigner d-function (\f$ d^l_{22}\f$[l][index_mu])
  * @param dm22  Input: Wigner d-function (\f$ d^l_{-22}\f$[l][index_mu])
  * @param w8    Input: Legendre quadrature weights (w8[index_mu])
@@ -790,19 +817,19 @@ int rotation_rotated_cl_ee_bb(double *ksip,
 		clp=0; clm=0;
 		for (imu=0;imu<nmu;imu++) {
 			clp += ksip[imu]*d22[imu][(int)pro->l[index_l]]*w8[imu]; /* loop could be optimized */
-			clm += cos(4*Ca0)*ksim[imu]*dm22[imu][(int)pro->l[index_l]]*w8[imu]; /* loop could be optimized */
+			clm += ksim[imu]*dm22[imu][(int)pro->l[index_l]]*w8[imu]; /* loop could be optimized */
 		}
-		pro->cl_rot[index_l*pro->lt_size+pro->index_lt_ee]=(clp+clm)*exp(-4*Ca0);
-		pro->cl_rot[index_l*pro->lt_size+pro->index_lt_bb]=(clp-clm)*exp(-4*Ca0);
+		pro->cl_rot[index_l*pro->lt_size+pro->index_lt_ee]=(clp+clm)*exp(-4*Ca0)/4;
+		pro->cl_rot[index_l*pro->lt_size+pro->index_lt_bb]=(clp-clm)*exp(-4*Ca0)*cos(4*alpha)/4;
 	}
 
 	return _SUCCESS_;
 }
 
 /**
- * This routine computes the lensed power spectra by Gaussian quadrature
+ * This routine computes the rotated power spectra by Gaussian quadrature
  *
- * @param ksiX Input: Lensed correlation function (ksiX[index_mu])
+ * @param ksiX Input: Rotated correlation function (ksiX[index_mu])
  * @param d20  Input: Wigner d-function (\f$ d^l_{20}\f$[l][index_mu])
  * @param w8   Input: Legendre quadrature weights (w8[index_mu])
  * @param nmu  Input: Number of quadrature points (0<=index_mu<=nmu)
@@ -832,21 +859,8 @@ int rotation_rotated_cl_eb(double *ksiX,
 		for (imu=0;imu<nmu;imu++) {
 			clX += ksiX[imu]*dm22[imu][(int)pro->l[index_l]]*w8[imu]; /* loop could be optimized */
 		}
-		pro->cl_rot[index_l*pro->lt_size+pro->index_lt_eb]=1/2*exp(-4*Ca0)*sin(4*alpha)*clX;
+		pro->cl_rot[index_l*pro->lt_size+pro->index_lt_eb]=clX*exp(-4*Ca0)*sin(4*alpha)/4;
 	}
 
 	return _SUCCESS_;
 }
-
-
-
-/**
- * This routine computes the rotated power spectra by Gaussian quadrature
- *
- * @param ksip  Input: rotated correlation function (ksip[index_mu])
- * @param d22  Input: Legendre polynomials (\f$ d^l_{22}\f$[l][index_mu])
- * @param w8   Input: Legendre quadrature weights (w8[index_mu])
- * @param nmu  Input: Number of quadrature points (0<=index_mu<=nmu)
- * @param pro  Input/output: Pointer to the rotation structure
- * @return the error status
- */
