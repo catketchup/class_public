@@ -288,6 +288,10 @@ int rotation_init(
 				num_mu*sizeof(double),
 				pro->error_message);
 
+	class_alloc(cl_unrotated,
+				phr->ct_size*sizeof(double),
+				pro->error_message);
+
 	/** - Locally store unrotated temperature \f$ cl\f$ and potential \f$ cl_{aa}\f$ spectra **/
 	class_alloc(cl_tt,
 				(pro->l_unrotated_max+1)*sizeof(double),
@@ -336,16 +340,16 @@ int rotation_init(
 	  class_call(harmonic_cl_at_l(phr,l,cl_unrotated,cl_md,cl_md_ic),
 				 phr->error_message,
 				 pro->error_message);
-	  cl_tt[l] = cl_unrotated[pro->index_lt_tt];
+	  cl_tt[l] = cl_unrotated[phr->index_ct_tt];
 	  /* generate cl_aa */
 	  cl_aa[l] = 2.*_PI_*pro->A_cb*10E-5/(l*(l+1));
 	  if (pro->has_ee==_TRUE_ || pro->has_bb==_TRUE_ || pro->has_eb==_TRUE_) {
-		  cl_ee[l] = cl_unrotated[pro->index_lt_ee];
-		  cl_bb[l] = cl_unrotated[pro->index_lt_bb];
+		  cl_ee[l] = cl_unrotated[phr->index_ct_ee];
+		  cl_bb[l] = cl_unrotated[phr->index_ct_bb];
 	  }
 
 	  if (pro->has_te==_TRUE_ || pro->has_tb==_TRUE_) {
-		  cl_te[l] = cl_unrotated[pro->index_lt_te];
+		  cl_te[l] = cl_unrotated[phr->index_ct_te];
 	  }
   }
 
