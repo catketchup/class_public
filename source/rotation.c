@@ -479,6 +479,12 @@ int rotation_init(
                pro->error_message,
                pro->error_message);
   }
+
+  if (pro->has_aa==_TRUE_) {
+    class_call(rotation_cl(pro->A_cb,pro),
+               pro->error_message,
+               pro->error_message);
+  }
   //fin=omp_get_wtime();
   //cpu_time = (fin-debut);
   //printf("time in final lensing computation=%4.3f s\n",cpu_time);
@@ -605,6 +611,15 @@ int rotation_indices(
   }
 
   pro->has_eb = _FALSE_;
+
+  if (pro->has_aa = _TRUE_) {
+    pro->index_lt_aa=index_ct;
+    index_ct++;
+  }
+  else {
+    pro->has_aa = _FALSE_;
+  }
+
   /* if (phr->has_eb == _TRUE_) { */
   /*   pro->has_eb = _TRUE_; */
   /*   pro->index_lt_eb = phr->index_ct_te+1; */
@@ -891,4 +906,18 @@ int rotation_rotated_cl_eb(double *ksiX,
   }
 
   return _SUCCESS_;
+}
+
+
+int rotation_cl(double A_cb,
+                struct rotation * pro
+                ){
+  int index_l;
+  pro->cl_rot[pro->index_lt_aa] = 0;
+  for(index_l=1; index_l < pro->l_size; index_l++){
+    pro->cl_rot[index_l*pro->lt_size+pro->index_lt_aa] = 2.*_PI_*A_cb*10E-5/(index_l*(index_l+1));
+  }
+
+  return _SUCCESS_;
+
 }
