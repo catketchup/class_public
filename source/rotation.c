@@ -481,7 +481,7 @@ int rotation_init(
   }
 
   if (pro->has_aa==_TRUE_) {
-    class_call(rotation_cl(pro->A_cb,pro),
+    class_call(rotation_cl_aa(pro->A_cb,pro),
                pro->error_message,
                pro->error_message);
   }
@@ -909,7 +909,7 @@ int rotation_rotated_cl_eb(double *ksiX,
 }
 
 
-int rotation_cl(double A_cb,
+int rotation_cl_aa(double A_cb,
                 struct rotation * pro
                 ){
   int index_l;
