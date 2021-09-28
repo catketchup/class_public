@@ -271,7 +271,7 @@ int rotation_init(
              pro->error_message,
              pro->error_message);
 
-	if (pro->has_ee==_TRUE_ || pro->has_bb==_TRUE_ || ) {
+	if (pro->has_ee==_TRUE_ || pro->has_bb==_TRUE_) {
 		class_call(lensing_d22(mu,num_mu,pro->l_unrotated_max,d22),
                pro->error_message,
                pro->error_message);
