@@ -439,7 +439,7 @@ int rotation_init(
     ksip[index_mu] *= exp(4*Ca[index_mu]);
     ksim[index_mu] *= exp(-4*Ca[index_mu]);
     if (pro->has_eb == _TRUE_) {
-      ksiX[index_mu] *= exp(-4*Ca[index_mu]);      
+      ksiX[index_mu] *= exp(-4*Ca[index_mu]);
     }
   }
   //fin = omp_get_wtime();
@@ -571,6 +571,7 @@ int rotation_indices(
   if (phr->has_tt == _TRUE_) {
     pro->has_tt = _TRUE_;
     pro->index_lt_tt=phr->index_ct_tt;
+    index_ct++;
   }
   else {
     pro->has_tt = _FALSE_;
@@ -579,6 +580,7 @@ int rotation_indices(
   if (phr->has_ee == _TRUE_) {
     pro->has_ee = _TRUE_;
     pro->index_lt_ee=phr->index_ct_ee;
+    index_ct++;
   }
   else {
     pro->has_ee = _FALSE_;
@@ -587,6 +589,7 @@ int rotation_indices(
   if (phr->has_te == _TRUE_) {
     pro->has_te = _TRUE_;
     pro->index_lt_te=phr->index_ct_te;
+    index_ct++;
   }
   else {
     pro->has_te = _FALSE_;
@@ -595,6 +598,7 @@ int rotation_indices(
   if (phr->has_bb == _TRUE_) {
     pro->has_bb = _TRUE_;
     pro->index_lt_bb=phr->index_ct_bb;
+    index_ct++;
   }
   else {
     pro->has_bb = _FALSE_;
