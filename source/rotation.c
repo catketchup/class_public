@@ -229,12 +229,15 @@ int rotation_init(
 				pro->error_message);
 		icount += 2*num_mu*(pro->l_unrotated_max+1);
 	}
-	if(pro->has_eb==_TRUE_) {
+	if(pro->has_eb==_TRUE_ && pro->has_ee==_FALSE_ && pro->has_bb==_FALSE_) {
 		class_alloc(dm22,
 				num_mu*sizeof(double*),
 				pro->error_message);
+	}
+	if(pro->has_eb==_TRUE_) {
 		icount += num_mu*(pro->l_unrotated_max+1);
 	}
+
 
 	/** - Allocate main contiguous buffer **/
 	class_alloc(buf_dxx,
@@ -268,7 +271,7 @@ int rotation_init(
              pro->error_message,
              pro->error_message);
 
-	if (pro->has_ee==_TRUE_ || pro->has_bb==_TRUE_) {
+	if (pro->has_ee==_TRUE_ || pro->has_bb==_TRUE_ || ) {
 		class_call(lensing_d22(mu,num_mu,pro->l_unrotated_max,d22),
                pro->error_message,
                pro->error_message);
@@ -277,7 +280,7 @@ int rotation_init(
              pro->error_message);
 	}
 
-	if (pro->has_eb==_TRUE_) {
+	if (pro->has_eb==_TRUE_ && pro->has_ee==_FALSE_ && pro->has_bb==_FALSE_  ) {
 		class_call(lensing_d2m2(mu,num_mu,pro->l_unrotated_max,dm22),
 				   pro->error_message,
 				   pro->error_message);

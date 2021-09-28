@@ -92,7 +92,7 @@ int main(int argc, char **argv) {
 	  return _FAILURE_;
   }
 
-  if (lensing_free(&ro) == _FAILURE_) {
+  if (lensing_free(&le) == _FAILURE_) {
     printf("\n\nError in lensing_free \n=>%s\n",le.error_message);
     return _FAILURE_;
   }
