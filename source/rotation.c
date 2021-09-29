@@ -910,8 +910,8 @@ int rotation_rotated_cl_eb(double *ksiX,
 
 
 int rotation_cl_aa(double A_cb,
-                struct rotation * pro
-                ){
+                   struct rotation * pro
+                   ){
   int index_l;
   pro->cl_rot[pro->index_lt_aa] = 0;
   for(index_l=1; index_l < pro->l_size; index_l++){
