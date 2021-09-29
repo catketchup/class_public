@@ -79,6 +79,7 @@ extern "C" {
   int output_total_cl_at_l(
                            struct harmonic * phr,
                            struct lensing * ple,
+                           struct rotation * pro,
                            struct output * pop,
                            int l,
                            double * cl
@@ -94,6 +95,7 @@ extern "C" {
                   struct fourier * pfo,
                   struct lensing * ple,
                   struct distortions * psd,
+                  struct rotation * pro,
                   struct output * pop
                   );
 
@@ -102,6 +104,7 @@ extern "C" {
                 struct perturbations * ppt,
                 struct harmonic * phr,
                 struct lensing * ple,
+                struct rotation * pro,
                 struct output * pop
                 );
 
