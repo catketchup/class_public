@@ -480,11 +480,11 @@ int rotation_init(
                pro->error_message);
   }
 
-  if (pro->has_aa==_TRUE_) {
-    class_call(rotation_cl_aa(pro->A_cb,pro),
-               pro->error_message,
-               pro->error_message);
-  }
+  /* if (pro->has_aa==_TRUE_) { */
+  /*   class_call(rotation_cl_aa(pro->A_cb,pro), */
+  /*              pro->error_message, */
+  /*              pro->error_message); */
+  /* } */
   //fin=omp_get_wtime();
   //cpu_time = (fin-debut);
   //printf("time in final lensing computation=%4.3f s\n",cpu_time);
@@ -612,13 +612,13 @@ int rotation_indices(
 
   pro->has_eb = _FALSE_;
 
-  if (pro->has_aa = _TRUE_) {
-    pro->index_lt_aa=index_ct;
-    index_ct++;
-  }
-  else {
-    pro->has_aa = _FALSE_;
-  }
+  /* if (pro->has_aa = _TRUE_) { */
+  /*   pro->index_lt_aa=index_ct; */
+  /*   index_ct++; */
+  /* } */
+  /* else { */
+  /*   pro->has_aa = _FALSE_; */
+  /* } */
 
   /* if (phr->has_eb == _TRUE_) { */
   /*   pro->has_eb = _TRUE_; */
@@ -659,7 +659,8 @@ int rotation_indices(
   /* 	pro->has_ea = _FALSE_; */
   /* } */
 
-  pro->lt_size = index_ct;
+  /* pro->lt_size = index_ct; */
+  pro->lt_size = phr->ct_size;
 
   /* number of multipoles */
 
@@ -769,7 +770,7 @@ int rotation_indices(
 int rotation_rotated_cl_tt(double *cl_tt,
                            struct rotation * pro){
   int index_l;
-  for(index_l=0; index_l<pro->l_size; index_l++){
+  for(index_l=2; index_l<pro->l_size; index_l++){
     pro->cl_rot[index_l*pro->lt_size+pro->index_lt_tt] = cl_tt[index_l];
   }
 
