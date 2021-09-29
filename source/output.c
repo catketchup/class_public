@@ -18,6 +18,7 @@
 int output_total_cl_at_l(
                          struct harmonic * phr,
                          struct lensing * ple,
+                         struct rotation * pro,
                          struct output * pop,
                          int l,
                          double * cl
@@ -36,6 +37,13 @@ int output_total_cl_at_l(
                                l,
                                cl),
                ple->error_message,
+               pop->error_message);
+  }
+  else if (pro->has_rotated_cls == _TRUE_) {
+    class_call(rotation_cl_at_l(pro,
+                               l,
+                               cl),
+               pro->error_message,
                pop->error_message);
   }
   else {
@@ -102,6 +110,7 @@ int output_total_cl_at_l(
  * @param phr Input: pointer to harmonic structure
  * @param pfo Input: pointer to fourier structure
  * @param ple Input: pointer to lensing structure
+ * @param pro Input: pointer to rotation structure
  * @param psd Input: pointer to distortions structure
  * @param pop Input: pointer to output structure
  */
@@ -116,6 +125,7 @@ int output_init(
                 struct fourier * pfo,
                 struct lensing * ple,
                 struct distortions * psd,
+                struct rotation * pro,
                 struct output * pop
                 ) {
 
@@ -137,7 +147,7 @@ int output_init(
 
   if (ppt->has_cls == _TRUE_) {
 
-    class_call(output_cl(pba,ppt,phr,ple,pop),
+    class_call(output_cl(pba,ppt,phr,ple,pro,pop),
                pop->error_message,
                pop->error_message);
   }
@@ -238,6 +248,7 @@ int output_init(
  * @param ppt Input: pointer perturbation structure
  * @param phr Input: pointer to harmonic structure
  * @param ple Input: pointer to lensing structure
+ * @param pro Input: pointer to rotation structure
  * @param pop Input: pointer to output structure
  */
 
@@ -246,6 +257,7 @@ int output_cl(
               struct perturbations * ppt,
               struct harmonic * phr,
               struct lensing * ple,
+              struct rotation * pro,
               struct output * pop
               ) {
 
@@ -264,6 +276,7 @@ int output_cl(
   FILE * out;         /* (will contain total cl's, summed eventually over modes and ic's) */
 
   FILE * out_lensed;         /* (will contain total lensed cl's) */
+  FILE * out_rotated;         /* (will contain total rotated cl's) */
 
   double ** cl_md_ic; /* array with argument
                          cl_md_ic[index_md][index_ic1_ic2*phr->ct_size+index_ct] */
@@ -336,6 +349,21 @@ int output_cl(
                                    file_name,
                                    "total lensed [l(l+1)/2pi] C_l's",
                                    ple->l_lensed_max
+                                   ),
+               pop->error_message,
+               pop->error_message);
+  }
+
+  if (pro->has_rotated_cls == _TRUE_) {
+
+    sprintf(file_name,"%s%s",pop->root,"cl_rotated.dat");
+
+    class_call(output_open_cl_file(phr,
+                                   pop,
+                                   &out_rotated,
+                                   file_name,
+                                   "total rotated [l(l+1)/2pi] C_l's",
+                                   pro->l_rotated_max
                                    ),
                pop->error_message,
                pop->error_message);
@@ -552,6 +580,20 @@ int output_cl(
                  pop->error_message);
     }
 
+    if ((pro->has_rotated_cls == _TRUE_) && (l<=pro->l_rotated_max)) {
+
+      class_call(rotation_cl_at_l(pro,
+                                 (double)l,
+                                 cl_tot),
+                 pro->error_message,
+                 pop->error_message);
+
+      class_call(output_one_line_of_cl(pba,phr,pop,out_rotated,l,cl_tot,phr->ct_size),
+                 pop->error_message,
+                 pop->error_message);
+    }
+
+
     if (ppt->md_size > 1) {
       for (index_md = 0; index_md < ppt->md_size; index_md++) {
         if (l <= phr->l_max[index_md]) {
@@ -598,6 +640,9 @@ int output_cl(
   fclose(out);
   if (ple->has_lensed_cls == _TRUE_) {
     fclose(out_lensed);
+  }
+  if (pro->has_rotated_cls == _TRUE_) {
+    fclose(out_rotated);
   }
   free(cl_tot);
   for (index_md = 0; index_md < ppt->md_size; index_md++) {

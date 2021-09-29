@@ -75,7 +75,7 @@ int main(int argc, char **argv) {
     return _FAILURE_;
   }
 
-  if (output_init(&ba,&th,&pt,&pm,&tr,&hr,&fo,&le,&sd,&op) == _FAILURE_) {
+  if (output_init(&ba,&th,&pt,&pm,&tr,&hr,&fo,&le,&sd,&ro,&op) == _FAILURE_) {
     printf("\n\nError in output_init \n=>%s\n",op.error_message);
     return _FAILURE_;
   }
@@ -92,7 +92,7 @@ int main(int argc, char **argv) {
 	  return _FAILURE_;
   }
 
-  if (lensing_free(&ro) == _FAILURE_) {
+  if (lensing_free(&le) == _FAILURE_) {
     printf("\n\nError in lensing_free \n=>%s\n",le.error_message);
     return _FAILURE_;
   }
