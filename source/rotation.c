@@ -778,8 +778,8 @@ int rotation_rotated_cl_tb(double *cl_te,
                            struct rotation * pro
                            ){
   int index_l;
-  for(index_l=2; index_l<pro->l_size; index_l++){
-    pro->cl_rot[index_l*pro->lt_size+pro->index_lt_te] = cl_te[index_l]*sin(2*pro->alpha)*exp(-2*Ca0);
+  for(index_l=0; index_l<pro->l_size; index_l++){
+    pro->cl_rot[index_l*pro->lt_size+pro->index_lt_tb] = cl_te[(int)pro->l[index_l]]*sin(2*pro->alpha)*exp(-2*Ca0);
   }
 
   return _SUCCESS_;
