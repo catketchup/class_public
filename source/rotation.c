@@ -181,7 +181,7 @@ int rotation_init(
   class_alloc(mu,
               num_mu*sizeof(double),
               pro->error_message);
-  /* Reserve last element of mu for mu=1, needed for sigma2? */
+  /* Reserve last element of mu for mu=1, needed for Ca0? */
   mu[num_mu-1] = 1.0;
 
   class_alloc(w8,
@@ -401,7 +401,7 @@ int rotation_init(
   }
 
   /** - --> ksiX is for EB **/
-  if (pro->has_eb==_TRUE_) {
+  if (pro->has_eb==_TRUE_ && (pro->has_ee==_FALSE_ || pro->has_bb==_FALSE_)) {
     class_calloc(ksiX,
                  (num_mu-1),
                  sizeof(double),
@@ -468,7 +468,7 @@ int rotation_init(
   }
 
   if (pro->has_ee==_TRUE_ || pro->has_bb==_TRUE_) {
-    class_call(rotation_rotated_cl_ee_bb(ksip,ksim,d22,dm22,w8,pro->alpha,Ca[0],num_mu-1,pro),
+    class_call(rotation_rotated_cl_ee_bb(ksip,ksim,d22,dm22,w8,pro->alpha,Ca[num_mu-1],num_mu-1,pro),
                pro->error_message,
                pro->error_message);
 
@@ -832,7 +832,7 @@ int rotation_rotated_cl_tb(double *cl_te,
  * @param dm22  Input: Wigner d-function (\f$ d^l_{-22}\f$[l][index_mu])
  * @param w8    Input: Legendre quadrature weights (w8[index_mu])
  * @param alpha Input: Isotropic rotation angle
- * @param Ca0   Input:
+ * @param Ca0   Input: (C^{\alapha{0}})
  * @param nmu   Input: Number of quadrature points (0<=index_mu<=nmu)
  * @param pro   Input/output: Pointer to the rotation structure
  * @return the error status
@@ -876,7 +876,7 @@ int rotation_rotated_cl_ee_bb(double *ksip,
  * This routine computes the rotated power spectra by Gaussian quadrature
  *
  * @param ksiX Input: Rotated correlation function (ksiX[index_mu])
- * @param d20  Input: Wigner d-function (\f$ d^l_{20}\f$[l][index_mu])
+ * @param dm22  Input: Wigner d-function (\f$ d^l_{-22}\f$[l][index_mu])
  * @param w8   Input: Legendre quadrature weights (w8[index_mu])
  * @param nmu  Input: Number of quadrature points (0<=index_mu<=nmu)
  * @param pro  Input/output: Pointer to the rotation structure
