@@ -1628,6 +1628,8 @@ int output_open_cl_file(
       class_fprintf_columntitle(*clfile,"EE",phr->has_ee,colnum);
       class_fprintf_columntitle(*clfile,"TE",phr->has_te,colnum);
       class_fprintf_columntitle(*clfile,"BB",phr->has_bb,colnum);
+      class_fprintf_columntitle(*clfile,"TB",phr->has_tb,colnum);
+      class_fprintf_columntitle(*clfile,"EB",phr->has_eb,colnum);
       class_fprintf_columntitle(*clfile,"phiphi",phr->has_pp,colnum);
       class_fprintf_columntitle(*clfile,"TPhi",phr->has_tp,colnum);
       class_fprintf_columntitle(*clfile,"Ephi",phr->has_ep,colnum);
@@ -1637,6 +1639,8 @@ int output_open_cl_file(
       class_fprintf_columntitle(*clfile,"EE",phr->has_ee,colnum);
       class_fprintf_columntitle(*clfile,"BB",phr->has_bb,colnum);
       class_fprintf_columntitle(*clfile,"TE",phr->has_te,colnum);
+      class_fprintf_columntitle(*clfile,"TB",phr->has_tb,colnum);
+      class_fprintf_columntitle(*clfile,"EB",phr->has_eb,colnum);
       class_fprintf_columntitle(*clfile,"dd",phr->has_pp,colnum);
       class_fprintf_columntitle(*clfile,"dT",phr->has_tp,colnum);
       class_fprintf_columntitle(*clfile,"dE",phr->has_ep,colnum);
@@ -1742,6 +1746,8 @@ int output_one_line_of_cl(
     class_fprintf_double(clfile, factor*pow(pba->T_cmb*1.e6,2)*cl[phr->index_ct_ee], phr->has_ee);
     class_fprintf_double(clfile, factor*pow(pba->T_cmb*1.e6,2)*cl[phr->index_ct_bb], phr->has_bb);
     class_fprintf_double(clfile, factor*pow(pba->T_cmb*1.e6,2)*cl[phr->index_ct_te], phr->has_te);
+    class_fprintf_double(clfile, factor*pow(pba->T_cmb*1.e6,2)*cl[phr->index_ct_tb], phr->has_tb);
+    class_fprintf_double(clfile, factor*pow(pba->T_cmb*1.e6,2)*cl[phr->index_ct_eb], phr->has_eb);
     class_fprintf_double(clfile, l*(l+1)*factor*cl[phr->index_ct_pp], phr->has_pp);
     class_fprintf_double(clfile, sqrt(l*(l+1))*factor*pba->T_cmb*1.e6*cl[phr->index_ct_tp], phr->has_tp);
     class_fprintf_double(clfile, sqrt(l*(l+1))*factor*pba->T_cmb*1.e6*cl[phr->index_ct_ep], phr->has_ep);
@@ -1753,6 +1759,10 @@ int output_one_line_of_cl(
     if (phr->has_bb == _TRUE_)
       index_ct_rest++;
     if (phr->has_te == _TRUE_)
+      index_ct_rest++;
+    if (phr->has_tb == _TRUE_)
+      index_ct_rest++;
+    if (phr->has_eb == _TRUE_)
       index_ct_rest++;
     if (phr->has_pp == _TRUE_)
       index_ct_rest++;

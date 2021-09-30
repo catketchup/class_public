@@ -144,6 +144,8 @@ struct perturbations
   short has_nc_lens;     /**< in dCl, do we want lensing terms ? */
   short has_nc_gr;       /**< in dCl, do we want gravity terms ? */
 
+  short has_rotation;
+  
   int l_scalar_max; /**< maximum l value for CMB scalars \f$ C_l \f$'s */
   int l_vector_max; /**< maximum l value for CMB vectors \f$ C_l \f$'s */
   int l_tensor_max; /**< maximum l value for CMB tensors \f$ C_l \f$'s */

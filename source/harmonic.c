@@ -561,6 +561,16 @@ int harmonic_indices(
       phr->has_dl = _FALSE_;
     }
 
+    if ((ppt->has_rotation == _TRUE_)) {
+      phr->has_tb = _TRUE_;
+      phr->index_ct_tb=index_ct;
+      index_ct ++;
+      
+      phr->has_eb = _TRUE_;
+      phr->index_ct_eb=index_ct;
+      index_ct ++;
+    }
+
     phr->ct_size = index_ct;
 
     /* infer from input quantities the l_max for each mode and type,

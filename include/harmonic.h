@@ -62,6 +62,9 @@ struct harmonic {
   int has_tl; /**< do we want \f$ C_l^{Tl}\f$? */
   int has_dl; /**< do we want \f$ C_l^{dl}\f$? */
 
+  int has_tb;
+  int has_eb;
+
   int index_ct_tt; /**< index for type \f$ C_l^{TT} \f$*/
   int index_ct_ee; /**< index for type \f$ C_l^{EE} \f$*/
   int index_ct_te; /**< index for type \f$ C_l^{TE} \f$*/
@@ -75,6 +78,9 @@ struct harmonic {
   int index_ct_ll; /**< first index for type \f$ C_l^{ll} \f$((d_size*d_size-(d_size-non_diag)*(d_size-non_diag-1)/2) values) */
   int index_ct_tl; /**< first index for type \f$ C_l^{Tl} \f$(d_size values) */
   int index_ct_dl; /**< first index for type \f$ C_l^{dl} \f$(d_size values) */
+
+  int index_ct_tb;
+  int index_ct_eb;
 
   int d_size;      /**< number of bins for which density Cl's are computed */
 

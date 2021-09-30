@@ -234,9 +234,6 @@ int rotation_init(
                 num_mu*sizeof(double*),
                 pro->error_message);
   }
-  /* if(pro->has_eb == _TRUE_){ */
-  /*   icount += num_mu*(pro->l_unrotated_max+1); */
-  /* } */
 
   /** - Allocate main contiguous buffer **/
   class_alloc(buf_dxx,
@@ -257,12 +254,12 @@ int rotation_init(
     icount +=2*num_mu*(pro->l_unrotated_max+1);
   }
 
-  /* if (pro->has_eb==_TRUE_) { */
-  /* 	for (index_mu=0; index_mu<num_mu; index_mu++){ */
-  /* 		dm22[index_mu] = &(buf_dxx[icount+(index_mu+num_mu)  * (pro->l_unrotated_max+1)]); */
-  /* 	} */
-  /* 	icount +=num_mu*(pro->l_unrotated_max+1); */
-  /* } */
+  if (pro->has_eb==_TRUE_ && pro->has_ee==_FALSE_ && pro->has_bb == _FALSE_) {
+  	for (index_mu=0; index_mu<num_mu; index_mu++){
+  		dm22[index_mu] = &(buf_dxx[icount+(index_mu+num_mu)  * (pro->l_unrotated_max+1)]);
+  	}
+  	icount +=num_mu*(pro->l_unrotated_max+1);
+  }
 
 
   //debut = omp_get_wtime();
@@ -279,11 +276,11 @@ int rotation_init(
                pro->error_message);
   }
 
-  /* if (pro->has_eb==_TRUE_ && pro->has_bb==_FALSE_ && pro->has_ee==_FALSE_) { */
-  /*   class_call(lensing_d2m2(mu,num_mu,pro->l_unrotated_max,dm22), */
-  /*              pro->error_message, */
-  /*              pro->error_message); */
-  /* } */
+  if (pro->has_eb==_TRUE_ && pro->has_bb==_FALSE_ && pro->has_ee==_FALSE_) {
+    class_call(lensing_d2m2(mu,num_mu,pro->l_unrotated_max,dm22),
+               pro->error_message,
+               pro->error_message);
+  }
 
   /** - compute \f$ Ca(\mu)\f$ */
   class_alloc(Ca,
@@ -401,7 +398,7 @@ int rotation_init(
   }
 
   /** - --> ksiX is for EB **/
-  if (pro->has_eb==_TRUE_ && (pro->has_ee==_FALSE_ || pro->has_bb==_FALSE_)) {
+  if (pro->has_eb==_TRUE_) {
     class_calloc(ksiX,
                  (num_mu-1),
                  sizeof(double),
@@ -577,7 +574,7 @@ int rotation_indices(
   if (phr->has_tt == _TRUE_) {
     pro->has_tt = _TRUE_;
     pro->index_lt_tt=phr->index_ct_tt;
-    /* index_ct++; */
+    index_ct++;
   }
   else {
     pro->has_tt = _FALSE_;
@@ -586,7 +583,6 @@ int rotation_indices(
   if (phr->has_ee == _TRUE_) {
     pro->has_ee = _TRUE_;
     pro->index_lt_ee=phr->index_ct_ee;
-    /* index_ct++; */
   }
   else {
     pro->has_ee = _FALSE_;
@@ -595,7 +591,6 @@ int rotation_indices(
   if (phr->has_te == _TRUE_) {
     pro->has_te = _TRUE_;
     pro->index_lt_te=phr->index_ct_te;
-    /* index_ct++; */
   }
   else {
     pro->has_te = _FALSE_;
@@ -604,13 +599,20 @@ int rotation_indices(
   if (phr->has_bb == _TRUE_) {
     pro->has_bb = _TRUE_;
     pro->index_lt_bb=phr->index_ct_bb;
-    /* index_ct++; */
   }
   else {
     pro->has_bb = _FALSE_;
   }
 
-  pro->has_eb = _FALSE_;
+  if (phr->has_tb == _TRUE_) {
+    pro->has_tb = _TRUE_;
+    pro->index_lt_tb=phr->index_ct_tb;
+  }
+
+  if (phr->has_eb == _TRUE_) {
+    pro->has_eb = _TRUE_;
+    pro->index_lt_eb=phr->index_ct_eb;
+  }
 
   /* if (pro->has_aa = _TRUE_) { */
   /*   pro->index_lt_aa=index_ct; */
@@ -620,46 +622,6 @@ int rotation_indices(
   /*   pro->has_aa = _FALSE_; */
   /* } */
 
-  /* if (phr->has_eb == _TRUE_) { */
-  /*   pro->has_eb = _TRUE_; */
-  /*   pro->index_lt_eb = phr->index_ct_te+1; */
-  /* } */
-  /* else{ */
-  /*   pro->has_eb = _FALSE_; */
-  /* } */
-
-  /* if ((phr->has_ee == _TRUE_) && (phr->has_bb == _TRUE_)) { */
-  /*   pro->index_lt_bb=index_ct; */
-  /*   pro->index_lt_eb=index_ct+2; */
-  /*   index_ct++; */
-  /* } */
-  /* else { */
-  /*   pro->has_ee = _FALSE_; */
-  /*   pro->has_bb = _FALSE_; */
-  /*   pro->has_eb = _FALSE_; */
-  /* } */
-
-  /* if (phr->has_te == _TRUE_) { */
-  /*   pro->has_te = _TRUE_; */
-  /*   pro->has_tb = _TRUE_; */
-  /*   pro->index_lt_te=index_ct; */
-  /*   pro->index_lt_tb=index_ct+2; */
-  /*   index_ct++; */
-  /* } */
-  /* else { */
-  /*   pro->has_te = _FALSE_; */
-  /*   pro->has_tb = _FALSE_; */
-  /* } */
-
-  /* if (phr->has_ea == _TRUE_) { */
-  /* 	pro->has_ea = _TRUE_; */
-  /* 	pro->index_lt_ea=phr->index_ct_ea; */
-  /* } */
-  /* else { */
-  /* 	pro->has_ea = _FALSE_; */
-  /* } */
-
-  /* pro->lt_size = index_ct; */
   pro->lt_size = phr->ct_size;
 
   /* number of multipoles */

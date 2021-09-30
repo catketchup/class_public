@@ -1681,6 +1681,7 @@ int input_read_parameters_general(struct file_content * pfc,
     }
 	/* for rotation */
 	if ((strstr(string1,"rCl") != NULL) || (strstr(string1,"RCl") != NULL) || (strstr(string1,"RCL") != NULL)) {
+      ppt->has_rotation = _TRUE_;
 	  pro->has_cl_cmb_rotation_spectrum = _TRUE_;
       pro->has_aa = _TRUE_;
     }
