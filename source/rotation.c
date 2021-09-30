@@ -577,7 +577,7 @@ int rotation_indices(
   if (phr->has_tt == _TRUE_) {
     pro->has_tt = _TRUE_;
     pro->index_lt_tt=phr->index_ct_tt;
-    index_ct++;
+    /* index_ct++; */
   }
   else {
     pro->has_tt = _FALSE_;
@@ -586,7 +586,7 @@ int rotation_indices(
   if (phr->has_ee == _TRUE_) {
     pro->has_ee = _TRUE_;
     pro->index_lt_ee=phr->index_ct_ee;
-    index_ct++;
+    /* index_ct++; */
   }
   else {
     pro->has_ee = _FALSE_;
@@ -595,7 +595,7 @@ int rotation_indices(
   if (phr->has_te == _TRUE_) {
     pro->has_te = _TRUE_;
     pro->index_lt_te=phr->index_ct_te;
-    index_ct++;
+    /* index_ct++; */
   }
   else {
     pro->has_te = _FALSE_;
@@ -604,7 +604,7 @@ int rotation_indices(
   if (phr->has_bb == _TRUE_) {
     pro->has_bb = _TRUE_;
     pro->index_lt_bb=phr->index_ct_bb;
-    index_ct++;
+    /* index_ct++; */
   }
   else {
     pro->has_bb = _FALSE_;
@@ -770,8 +770,8 @@ int rotation_indices(
 int rotation_rotated_cl_tt(double *cl_tt,
                            struct rotation * pro){
   int index_l;
-  for(index_l=2; index_l<pro->l_size; index_l++){
-    pro->cl_rot[index_l*pro->lt_size+pro->index_lt_tt] = cl_tt[index_l];
+  for(index_l=0; index_l<pro->l_size; index_l++){
+    pro->cl_rot[index_l*pro->lt_size+pro->index_lt_tt] = cl_tt[(int)pro->l[index_l]];
   }
 
   return _SUCCESS_;
@@ -794,7 +794,7 @@ int rotation_rotated_cl_te(double *cl_te,
                            ){
   int index_l;
   for(index_l=0; index_l<pro->l_size; index_l++){
-    pro->cl_rot[index_l*pro->lt_size+pro->index_lt_te] = cl_te[index_l]*cos(2*pro->alpha)*exp(-2*Ca0);
+    pro->cl_rot[index_l*pro->lt_size+pro->index_lt_te] = cl_te[(int)pro->l[index_l]]*cos(2*pro->alpha)*exp(-2*Ca0);
   }
 
   return _SUCCESS_;
@@ -816,7 +816,7 @@ int rotation_rotated_cl_tb(double *cl_te,
                            struct rotation * pro
                            ){
   int index_l;
-  for(index_l=0; index_l<pro->l_size; index_l++){
+  for(index_l=2; index_l<pro->l_size; index_l++){
     pro->cl_rot[index_l*pro->lt_size+pro->index_lt_te] = cl_te[index_l]*sin(2*pro->alpha)*exp(-2*Ca0);
   }
 
@@ -863,8 +863,10 @@ int rotation_rotated_cl_ee_bb(double *ksip,
       clp += ksip[imu]*d22[imu][(int)pro->l[index_l]]*w8[imu]; /* loop could be optimized */
       clm += ksim[imu]*dm22[imu][(int)pro->l[index_l]]*w8[imu]; /* loop could be optimized */
     }
-    pro->cl_rot[index_l*pro->lt_size+pro->index_lt_ee]=(clp+clm)*exp(-4*Ca0)/4;
-    pro->cl_rot[index_l*pro->lt_size+pro->index_lt_bb]=(clp-clm)*exp(-4*Ca0)*cos(4*alpha)/4;
+    clp *= exp(-4*Ca0)/2;
+    clm *= exp(-4*Ca0)*cos(4*alpha)/2;
+    pro->cl_rot[index_l*pro->lt_size+pro->index_lt_ee]=(clp+clm)/2;
+    pro->cl_rot[index_l*pro->lt_size+pro->index_lt_bb]=(clp-clm)/2;
   }
 
   return _SUCCESS_;
