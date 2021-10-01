@@ -4694,7 +4694,7 @@ int input_read_parameters_rotation(struct file_content * pfc,
 				   errmsg,
 				   errmsg);
 		if (flag1 == _TRUE_) {
-			pro->alpha = param1;
+          pro->alpha = param1/(180/_PI_);
 		}
 		if (flag2 == _TRUE_) {
 			pro->A_cb = param2;

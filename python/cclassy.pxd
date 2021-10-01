@@ -290,9 +290,6 @@ cdef extern from "class.h":
         ErrorMsg error_message
 
     cdef struct rotation:
-        int use_lensed
-        double alpha
-        double A_cb
         int has_tt
         int has_te
         int has_tb
