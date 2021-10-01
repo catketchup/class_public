@@ -459,6 +459,7 @@ int rotation_init(
   }
 
   if (pro->has_tb==_TRUE_) {
+    pro->l_max_lt[pro->index_lt_tb] = ppt->l_scalar_max;
     class_call(rotation_rotated_cl_tb(cl_te,pro->alpha,Ca[0],pro),
                pro->error_message,
                pro->error_message);
@@ -472,6 +473,7 @@ int rotation_init(
   }
 
   if (pro->has_eb==_TRUE_) {
+    pro->l_max_lt[pro->index_lt_eb] = ppt->l_scalar_max;
     class_call(rotation_rotated_cl_eb(ksiX,dm22,w8,pro->alpha,Ca[0],num_mu-1,pro),
                pro->error_message,
                pro->error_message);
@@ -569,12 +571,10 @@ int rotation_indices(
   int index_ct;
 
   /* indices of all Cl types (rotated and unrotated) */
-  index_ct=0;
 
   if (phr->has_tt == _TRUE_) {
     pro->has_tt = _TRUE_;
     pro->index_lt_tt=phr->index_ct_tt;
-    index_ct++;
   }
   else {
     pro->has_tt = _FALSE_;

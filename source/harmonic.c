@@ -632,11 +632,6 @@ int harmonic_indices(
              index_ct++)
           phr->l_max_ct[ppt->index_md_scalars][index_ct] = ppt->l_lss_max;
 
-      if (ppt->has_rotation == _TRUE_) {
-        if (phr->has_tb == _TRUE_) phr->l_max_ct[ppt->index_md_scalars][phr->index_ct_tb] = ppt->l_scalar_max;
-        if (phr->has_eb == _TRUE_) phr->l_max_ct[ppt->index_md_scalars][phr->index_ct_eb] = ppt->l_scalar_max;
-    }
-
     }
     if (ppt->has_tensors == _TRUE_) {
 
