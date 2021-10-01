@@ -648,8 +648,7 @@ cdef class Class:
             (self.ro.has_tb, self.ro.index_lt_tb, 'tb'),
             (self.ro.has_ee, self.ro.index_lt_ee, 'ee'),
             (self.ro.has_bb, self.ro.index_lt_bb, 'bb'),
-            (self.ro.has_eb, self.ro.index_lt_eb, 'eb')
-            (self.ro.has_aa, self.ro.index_lt_aa, 'aa'),]
+            (self.ro.has_eb, self.ro.index_lt_eb, 'eb'),]
         spectra = []
 
         for flag, index, name in has_flags:
