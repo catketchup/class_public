@@ -565,7 +565,7 @@ int harmonic_indices(
       phr->has_tb = _TRUE_;
       phr->index_ct_tb=index_ct;
       index_ct ++;
-      
+
       phr->has_eb = _TRUE_;
       phr->index_ct_eb=index_ct;
       index_ct ++;
@@ -632,6 +632,11 @@ int harmonic_indices(
              index_ct++)
           phr->l_max_ct[ppt->index_md_scalars][index_ct] = ppt->l_lss_max;
 
+      if (ppt->has_rotation == _TRUE_) {
+        if (phr->has_tb == _TRUE_) phr->l_max_ct[ppt->index_md_scalars][phr->index_ct_tb] = ppt->l_scalar_max;
+        if (phr->has_eb == _TRUE_) phr->l_max_ct[ppt->index_md_scalars][phr->index_ct_eb] = ppt->l_scalar_max;
+    }
+
     }
     if (ppt->has_tensors == _TRUE_) {
 
@@ -642,6 +647,8 @@ int harmonic_indices(
       if (phr->has_te == _TRUE_) phr->l_max_ct[ppt->index_md_tensors][phr->index_ct_te] = ppt->l_tensor_max;
       if (phr->has_bb == _TRUE_) phr->l_max_ct[ppt->index_md_tensors][phr->index_ct_bb] = ppt->l_tensor_max;
     }
+
+
 
     /* maximizations */
     phr->l_max_tot = 0.;
