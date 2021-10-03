@@ -644,10 +644,10 @@ cdef class Class:
         # over them, checking if they are defined or not.
         has_flags = [
             (self.ro.has_tt, self.ro.index_lt_tt, 'tt'),
-            (self.ro.has_te, self.ro.index_lt_te, 'te'),
-            (self.ro.has_tb, self.ro.index_lt_tb, 'tb'),
             (self.ro.has_ee, self.ro.index_lt_ee, 'ee'),
+            (self.ro.has_te, self.ro.index_lt_te, 'te'),
             (self.ro.has_bb, self.ro.index_lt_bb, 'bb'),
+            (self.ro.has_tb, self.ro.index_lt_tb, 'tb'),
             (self.ro.has_eb, self.ro.index_lt_eb, 'eb'),]
         spectra = []
 
