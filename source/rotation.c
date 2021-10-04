@@ -1,12 +1,12 @@
 /** @file rotation.c Documented rotation module
  *
- * Hongbo Cai 09/25/2021
+ * Hongbo Cai 09/25/2021, debugged with Yilun Guan
  *
  * This module computes the rotated temperature and polarization
  * anisotropy power spectra \f$ C_l^{X},\f$'s given the
- * unrotated temperature, polarization and rotation field power spectra.
+ * unrotated temperature, polarization power spectra, isotropic rotation angle and amplitude of rotation power spectrum.
  *
- * Follows
+ * Follows the full-sky method, https://arxiv.org/abs/2006.01811
  *
  * The following functions can be called from other modules:
  *
@@ -458,18 +458,19 @@ int rotation_init(
                pro->error_message);
   }
 
-  if (pro->has_tb==_TRUE_) {
-    pro->l_max_lt[pro->index_lt_tb] = ppt->l_scalar_max;
-    class_call(rotation_rotated_cl_tb(cl_te,pro->alpha,Ca[0],pro),
-               pro->error_message,
-               pro->error_message);
-  }
 
   if (pro->has_ee==_TRUE_ || pro->has_bb==_TRUE_) {
     class_call(rotation_rotated_cl_ee_bb(ksip,ksim,d22,dm22,w8,pro->alpha,Ca[num_mu-1],num_mu-1,pro),
                pro->error_message,
                pro->error_message);
 
+  }
+
+  if (pro->has_tb==_TRUE_) {
+    pro->l_max_lt[pro->index_lt_tb] = ppt->l_scalar_max;
+    class_call(rotation_rotated_cl_tb(cl_te,pro->alpha,Ca[0],pro),
+               pro->error_message,
+               pro->error_message);
   }
 
   if (pro->has_eb==_TRUE_) {

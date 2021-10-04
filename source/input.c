@@ -4685,12 +4685,12 @@ int input_read_parameters_rotation(struct file_content * pfc,
 	}
 
 	/* Read */
-	if ((ppt->has_scalars == _TRUE_) && (pro->has_cl_cmb_rotation_spectrum)) {
+	if ((ppt->has_scalars == _TRUE_) && (ppt->has_rotation == _TRUE_)) {
 
 		class_call(parser_read_double(pfc, "alpha",&param1,&flag1,errmsg),
 				   errmsg,
 				   errmsg);
-		class_call(parser_read_double(pfc, "A_cb",&param1,&flag1,errmsg),
+		class_call(parser_read_double(pfc, "A_cb",&param2,&flag2,errmsg),
 				   errmsg,
 				   errmsg);
 		if (flag1 == _TRUE_) {
@@ -4699,8 +4699,7 @@ int input_read_parameters_rotation(struct file_content * pfc,
 		if (flag2 == _TRUE_) {
 			pro->A_cb = param2;
 		}
-		class_read_double("alpha",pro->alpha);
-		class_read_double("A_cb",pro->A_cb);
+
 	}
 
 	return _SUCCESS_;
