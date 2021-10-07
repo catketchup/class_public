@@ -341,7 +341,7 @@ int rotation_init(
                pro->error_message);
     cl_tt[l] = cl_unrotated[pro->index_lt_tt];
     /* generate cl_aa */
-    cl_aa[l] = 2.*_PI_*pro->A_cb*10E-5/(l*(l+1));
+    cl_aa[l] = 2.*_PI_*pro->A_cb*1E-5/(l*(l+1));
     if (pro->has_ee==_TRUE_ || pro->has_bb==_TRUE_) {
       cl_ee[l] = cl_unrotated[pro->index_lt_ee];
       cl_bb[l] = cl_unrotated[pro->index_lt_bb];
